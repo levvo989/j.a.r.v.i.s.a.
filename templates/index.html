@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<meta charset="UTF-8">
+<title>J.A.R.V.I.S.A Control Panel</title>
+<style>
+body { background:#0d1117; color:#e6edf3; font-family:"Segoe UI", Arial, sans-serif; margin:0; }
+header { background:#161b22; display:flex; justify-content:space-between; align-items:center; padding:15px 30px; border-bottom:1px solid #30363d; }
+header h1 { color:#58a6ff; font-size:22px; margin:0; }
+main { display:grid; grid-template-columns:1fr 1fr; gap:30px; padding:30px; }
+section { background:#161b22; padding:20px; border-radius:10px; }
+h2 { color:#58a6ff; font-size:18px; margin-bottom:10px; }
+label.small { font-size:12px; color:#8b949e; display:block; margin-top:8px; }
+input, textarea, button, select { background:#0d1117; color:#e6edf3; border:1px solid #30363d; border-radius:6px; padding:8px; width:100%; margin-top:5px; }
+button { background:#238636; cursor:pointer; width:auto; }
+button:hover { background:#2ea043; }
+input[type="file"] { padding:4px; }
+.model-item{
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+
+.model-item button { margin-left:5px; padding:2px 8px; }
+pre, .chat-output{
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+
+.chat-output{
+  margin-top: 16px;   
+}
+.model-item{
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.model-item:hover{
+  background: rgba(108, 123, 255, .08);
+}
+
+.model-item.active{
+  background: rgba(108, 123, 255, .15);
+  border-color: var(--accent);
+}
+
+
+.helper { font-size:12px; color:#8b949e; margin-top:6px; }
+.hidden { display:none; }
+.badge { display:inline-block; padding:2px 8px; border:1px solid #30363d; border-radius:999px; font-size:12px; margin-left:8px; white-space:nowrap; }
+.badge.ok { border-color:#2ea043; color:#2ea043; }
+.badge.warn { border-color:#8b949e; color:#8b949e; }
+
+.segmented{
+  display: inline-flex;
+  gap: 2px;
+
+  background: var(--bg2);
+  border: 1px solid var(--outline);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.segmented button{
+  background: transparent;
+  color: var(--text);
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 6px 14px;
+  cursor: pointer;
+
+  transition:
+    background .15s ease,
+    color .15s ease;
+}
+
+
+.segmented button:hover{
+  background: rgba(108, 123, 255, .08);
+}
+
+.segmented button.active{
+  background: var(--accent);
+  color: #fff;
+}
+
+
+
+.segmented button + button{
+  border-left: none;
+}
+
+
+.row { display:flex; gap:8px; align-items:center; }
+.grow { flex:1 1 auto; min-width:0; }
+.shrink { flex:0 0 auto; }
+
+hr.sep { border:0; border-top:1px solid #30363d; margin:18px 0; }
+
+img.preview {
+  max-width:100%;
+  border-radius:10px;
+  border:1px solid #30363d;
+  display:none;
+  background:#0d1117;
+}
+
+main{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:30px;
+  padding:30px;
+}
+
+.col{
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+}
+
+
+@media (max-width: 980px){
+  main{ grid-template-columns: 1fr; }
+}
+
+
+progress { width:100%; height:14px; }
+
+
+:root{
+  --outline: rgba(108, 123, 255, 0.35);
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #010409;   
+  --text: #e6edf3;
+  --border: #30363d;
+  --accent: #6C7BFF;
+  --btn: #6C7BFF;
+  --btn-hover: #5A67D8;
+}
+
+body.light{
+  --outline: rgba(90, 103, 216, 0.4);
+  --bg: #ffffff;
+  --bg2: #f6f8fa;
+  --bg3: #ffffff;  
+  --text: #1f2328;
+  --border: rgba(90, 103, 216, 0.4);
+  --accent: #5A67D8;
+  --btn: #5A67D8;
+  --btn-hover: #4C51BF;
+}
+
+
+
+body{
+  background: var(--bg);
+  color: var(--text);
+}
+
+header{
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+section{
+  background: var(--bg2);
+}
+
+input, textarea, select{
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--outline);
+}
+
+button{
+  background: var(--btn);
+  color:#fff;
+}
+
+button:hover{
+  background: var(--btn-hover);
+}
+
+.chat-output,
+pre{
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.site-title{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-icon{
+  width: 28px;
+  height: 28px;
+  image-rendering: auto;
+}
+#cloudpubLinks a{
+  color: var(--accent);
+  text-decoration: none;
+}
+#cloudpubLinks a:hover{
+  text-decoration: underline;
+}
+
+
+
+</style>
+</head>
+<body>
+
+<header>
+	<h1 class="site-title">
+	  <img
+		src="/favicon.ico"
+		alt="J.A.R.V.I.S.A."
+		class="site-icon"
+	  >
+	  J.A.R.V.I.S.A.
+	</h1>
+
+
+  <button
+    id="themeToggleBtn"
+    title="Переключить тему"
+    style="padding:6px 10px;border-radius:8px;"
+  >
+    🌙
+  </button>
+</header>
+
+
+<main>
+  
+  <div class="col" id="leftCol">
+
+    
+    <section>
+      <h2>Консоль Ollama</h2>
+      <input id="ollamaCommand" placeholder="Введите Ollama команду..." />
+      <button onclick="runOllama()">Выполнить</button>
+      <div id="ollamaOutput" class="chat-output"></div>
+    </section>
+
+    
+    <section>
+      <h2>Ollama модели</h2>
+      <div id="modelsList"></div>
+    </section>
+
+    
+    <section>
+      <h2>Ollama анализ модели</h2>
+      <label class="small">Модель для анализа файлов</label>
+      <select id="ollamaAnalysisModel"></select>
+      <button onclick="saveAnalysisModel()">Сохранить</button>
+    </section>
+	
+	<section>
+	  <h2>Telegram бот</h2>
+
+	  <label class="small">Статус</label>
+	  <div class="row">
+		<span id="tgStatus" class="badge warn">неизвестно</span>
+		<div class="grow"></div>
+		<button class="shrink" onclick="tgRefresh()">Обновить</button>
+	  </div>
+
+	  <label class="small" style="margin-top:10px;">Bot Token</label>
+	  <input
+		id="tgBotToken"
+		placeholder="123456:ABCDEF..."
+		autocomplete="off"
+	  />
+
+	  <label class="small">Admin ID (через запятую)</label>
+	  <input
+		id="tgAdminIds"
+		placeholder="123456789,987654321"
+	  />
+
+	  <div class="row" style="margin-top:10px;">
+		<button class="shrink" onclick="tgSave()">Сохранить</button>
+		<button class="shrink" onclick="tgStart()">Запустить</button>
+		<button class="shrink" onclick="tgStop()">Остановить</button>
+		<div class="grow"></div>
+	  </div>
+
+	  <div class="helper" style="margin-top:8px;">
+		Управление Telegram-ботом без перезапуска Flask.
+	  </div>
+	</section>
+  </div>
+  
+  <div class="col" id="rightCol">
+
+    
+    <section>
+      <h2>LLM Провайдер</h2>
+
+      <div class="row" style="align-items:center;">
+        <div class="segmented shrink" id="providerButtons">
+          <button id="btn-ollama" onclick="chooseProvider('ollama')">Ollama</button>
+          <button id="btn-gigachat" onclick="chooseProvider('gigachat')">GigaChat</button>
+        </div>
+        <div class="grow"></div>
+        <span id="providerStatus" class="badge warn shrink"></span>
+      </div>
+
+      <div id="ollamaHint" class="helper" style="margin-top:8px;">Ollama локально. API‑ключи не нужны.</div>
+
+      <div id="gigachatFields" class="hidden" style="margin-top:10px;">
+        <label class="small">GigaChat Token</label>
+        <input id="gigachatKey" placeholder="Bearer ..." autocomplete="off" />
+        <label class="small">Модель</label>
+        <input id="gigachatModel" placeholder="GigaChat" />
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="shrink" onclick="saveKeys()">Сохранить ключи</button>
+      </div>
+    </section>
+
+    
+    <section>
+      <h2>Тест</h2>
+      <div class="helper">Обычно работает через /send-message-stream (Ollama).</div>
+		<textarea
+		  id="testUserMessage"
+		  rows="1"
+		  placeholder="Сообщение..."
+		></textarea>
+
+		<button
+		  type="button"
+		  onclick="sendTestMessage()"
+		>
+		  Отправить
+		</button>
+
+      <div id="chatOutput" class="chat-output"></div>
+    </section>
+
+    
+    <section>
+      <h2>Admin‑token</h2>
+      <div class="helper">
+        Токен нужен для запуска Telegram‑бота и CloudPub‑хоста.
+        Используется как заголовок <code>X-Admin-Token</code>.
+      </div>
+
+      <label class="small">Admin token</label>
+      <input id="adminToken" placeholder="Введи admin‑token" autocomplete="off" />
+
+      <div class="row" style="margin-top:8px;">
+        <button class="shrink" onclick="saveAdminToken()">Сохранить admin‑token</button>
+        <div class="grow"></div>
+      </div>
+    </section>
+
+    
+    <section>
+      <h2>CloudPub хост</h2>
+      <div class="helper">Для запуска CloudPub нужен admin‑token.</div>
+
+      <label class="small" style="margin-top:10px;">Введите токен</label>
+      <input id="ngrok_token" placeholder="CloudPub token..." autocomplete="off" />
+
+      <div class="row" style="margin-top:8px;">
+        <button class="shrink" onclick="saveToken()">Сохранить токен</button>
+        <button class="shrink" onclick="startNgrok()">Запустить CloudPub</button>
+        <div class="grow"></div>
+      </div>
+
+      <p id="ngrok_status"></p>
+		<div id="cloudpubLinks" class="hidden" style="margin-top:12px;">
+		  <label class="small">Доступные адреса</label>
+
+		  <div class="helper" style="line-height:1.8;">
+			<div>
+			  ▶ <a id="cloudpubLinkMain" href="#" target="_blank">/ — Консоль</a>
+			</div>
+			<div>
+			  📱 <a id="cloudpubLinkMobile" href="#" target="_blank">/mobile — Мобильная версия</a>
+			</div>
+			<div>
+			  🤖 <a id="cloudpubLinkAlice" href="#" target="_blank">/alice — Alice endpoint</a>
+			</div>
+		  </div>
+		</div>
+
+
+      <p class="helper">
+        <a href="https://cloudpub.ru/dashboard" target="_blank" style="color:#58a6ff;">cloudpub.ru/dashboard</a>
+      </p>
+    </section>
+
+    
+    <section>
+      
+      
+      
+      
+    </section>
+
+  </div>
+</main>
+
+
+<script>
+let selectedModel = "";
+let hasGigachatKey = false;
+let currentProvider = 'ollama';
+
+let _sdLastObjectUrl = null;
+let _sdPollingTimer = null;
+let _hfTimer = null;
+
+const ADMIN_TOKEN_STORAGE_KEY = "jarvisa_admin_token";
+function getStoredAdminToken() { return (localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || "").trim(); }
+function getAdminToken() {
+  const input = (document.getElementById("adminToken")?.value || "").trim();
+  return input || getStoredAdminToken();
+}
+function adminHeaders() {
+  const t = getAdminToken();
+  return t ? {"X-Admin-Token": t} : {};
+}
+function adminJsonHeaders() {
+  const t = getAdminToken();
+  const h = {"Content-Type":"application/json"};
+  if (t) h["X-Admin-Token"] = t;
+  return h;
+}
+
+async function saveAdminToken() {
+  const inputEl = document.getElementById("adminToken");
+  const newToken = (inputEl?.value || "").trim();
+  const currentToken = getStoredAdminToken();
+
+  const headers = {"Content-Type":"application/json"};
+  if (currentToken) headers["X-Admin-Token"] = currentToken;
+  else if (newToken) headers["X-Admin-Token"] = newToken;
+
+  const res = await fetch("/save-admin-token", {
+    method:"POST",
+    headers,
+    body: JSON.stringify({ token: newToken })
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    document.getElementById("chatOutput").textContent = data.error || "Ошибка сохранения admin‑token";
+    return;
+  }
+
+  if (newToken) localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, newToken);
+  else localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+
+  document.getElementById("chatOutput").textContent = data.message || "Admin‑token сохранён";
+}
+
+function setSectionVisible(id, visible) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('hidden', !visible);
+  el.querySelectorAll('input,button,textarea,select').forEach(ctrl => { ctrl.disabled = !visible; });
+}
+function highlightProviderButtons() {
+  ['ollama','gigachat'].forEach(p => {
+    const btn = document.getElementById('btn-' + p);
+    if (btn) btn.classList.toggle('active', p === currentProvider);
+  });
+}
+function updateProviderUI(provider) {
+  currentProvider = provider;
+  highlightProviderButtons();
+
+  const isOllama = provider === 'ollama';
+  const isGigachat = provider === 'gigachat';
+
+  setSectionVisible('gigachatFields', isGigachat);
+
+
+  const providerStatus = document.getElementById('providerStatus');
+  if (isOllama) {
+    providerStatus.textContent = 'готов';
+    providerStatus.className = 'badge ok';
+  } else if (isGigachat) {
+    providerStatus.textContent = hasGigachatKey ? 'готов' : 'нет ключа';
+    providerStatus.className = 'badge ' + (hasGigachatKey ? 'ok' : 'warn');
+  }
+}
+
+async function init() {
+  await loadModels();
+  await loadConfig();
+  await sdRefresh();
+  await loadAnalysisModels();
+}
+init();
+
+async function loadModels() {
+  try {
+    const res = await fetch("/list-models");
+    const data = await res.json();
+    const container = document.getElementById("modelsList");
+    container.innerHTML = "";
+    if (data.error) { container.textContent = "Ошибка: " + data.error; return; }
+    if (!data.models || data.models.length === 0) { container.textContent = "Модели не найдены."; return; }
+    data.models.forEach(model => {
+      const div = document.createElement("div");
+      div.className = "model-item";
+      div.innerHTML = `<span class="model-name">${model}</span>`;
+	  div.onclick = () => selectModel(model, div);
+      container.appendChild(div);
+    });
+  } catch (e) {
+    document.getElementById("modelsList").textContent = "Ошибка загрузки: " + e;
+  }
+}
+
+async function tgRefresh(){
+  try{
+    const res = await fetch("/tg/status");
+    const data = await res.json();
+
+    const badge = document.getElementById("tgStatus");
+    if (data.running){
+      badge.textContent = "запущен";
+      badge.className = "badge ok";
+    } else {
+      badge.textContent = "остановлен";
+      badge.className = "badge warn";
+    }
+
+    if (data.bot_token)
+      document.getElementById("tgBotToken").placeholder = "•••• token сохранён";
+
+    if (Array.isArray(data.admin_ids))
+      document.getElementById("tgAdminIds").value = data.admin_ids.join(",");
+
+  }catch(e){
+    document.getElementById("tgStatus").textContent = "ошибка";
+  }
+}
+
+async function tgSave(){
+  const token = document.getElementById("tgBotToken").value.trim();
+  const adminsRaw = document.getElementById("tgAdminIds").value;
+
+  const admin_ids = adminsRaw
+    .split(",")
+    .map(x => parseInt(x.trim(), 10))
+    .filter(x => !isNaN(x));
+
+  const res = await fetch("/tg/config", {
+    method: "POST",
+    headers: adminJsonHeaders(),
+    body: JSON.stringify({
+      bot_token: token || null,
+      admin_ids
+    })
+  });
+
+  const data = await res.json();
+  alert(data.message || "Сохранено");
+
+  document.getElementById("tgBotToken").value = "";
+  tgRefresh();
+}
+
+async function tgStart(){
+  const res = await fetch("/tg/start", {
+    method: "POST",
+    headers: adminHeaders()
+  });
+  const data = await res.json();
+  alert(data.message || data.error || "OK");
+  tgRefresh();
+}
+
+async function tgStop(){
+  const res = await fetch("/tg/stop", {
+    method: "POST",
+    headers: adminHeaders()
+  });
+  const data = await res.json();
+  alert(data.message || data.error || "OK");
+  tgRefresh();
+}
+
+setTimeout(tgRefresh, 800);
+
+
+async function loadAnalysisModels() {
+  const res = await fetch("/list-models");
+  const data = await res.json();
+  const sel = document.getElementById("ollamaAnalysisModel");
+  sel.innerHTML = "";
+  (data.models || []).forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = m;
+    sel.appendChild(o);
+  });
+}
+
+function selectModel(model, elDiv){
+  selectedModel = model;
+
+  document.querySelectorAll(".model-item").forEach(el => {
+    el.classList.remove("active");
+  });
+
+  elDiv.classList.add("active");
+
+  document.getElementById("ollamaOutput").textContent =
+    `✅ Выбрана модель Ollama: ${model}`;
+
+  fetch("/select-model", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({model})
+  });
+}
+
+function sendTestMessage(){
+  const input = document.getElementById("testUserMessage");
+  const output = document.getElementById("chatOutput");
+
+  if (!input || !output) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  output.textContent = "⏳ Отправка...";
+
+  fetch("/send-message-stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  })
+  .then(r => r.text())
+  .then(data => {
+    output.textContent = data;
+  })
+  .catch(err => {
+    output.textContent = "❌ Ошибка: " + err.message;
+  });
+
+  input.value = "";
+}
+
+
+async function saveAnalysisModel() {
+  const model = document.getElementById("ollamaAnalysisModel").value;
+  await fetch("/save-keys", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ ollama_analysis_model: model })
+  });
+  alert("Модель анализа сохранена");
+}
+
+
+async function loadConfig() {
+  try {
+    const res = await fetch("/get-config");
+    const cfg = await res.json();
+
+    hasGigachatKey = !!cfg.has_gigachat_key;
+
+    if (cfg.gigachat_model) document.getElementById("gigachatModel").value = cfg.gigachat_model;
+
+    currentProvider = cfg.provider || 'ollama';
+    updateProviderUI(currentProvider);
+  } catch (_) {}
+}
+
+async function chooseProvider(provider) {
+  currentProvider = provider;
+  updateProviderUI(provider);
+  const res = await fetch("/select-provider", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({provider})
+  });
+  const data = await res.json();
+  document.getElementById("chatOutput").textContent = data.message || "✅ Провайдер установлен";
+}
+
+async function useModel(model) {
+  selectedModel = model;
+  document.getElementById("ollamaOutput").textContent = `✅ Выбрана модель Ollama: ${model}`;
+  await fetch("/select-model", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({model})
+  });
+}
+
+async function runOllama() {
+  const cmd = document.getElementById("ollamaCommand").value || `ollama list`;
+  const output = document.getElementById("ollamaOutput");
+  output.textContent = "⏳ Выполняем команду...";
+  const res = await fetch("/run-command", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({command: cmd})
+  });
+  const data = await res.json();
+  output.textContent = data.output || data.error || "Ошибка";
+}
+
+async function sendMessage() {
+  const text = (el.messageInput.value || "").trim();
+  const file = state.pendingFile;
+
+  if (!text && !file) return;
+
+  if (!state.apiBase) {
+    alert("Сначала введи CloudPub URL.");
+    setScreen("start");
+    return;
+  }
+
+  if (state.imageMode) {
+    if (!text) {
+      alert("Опиши, что нужно нарисовать.");
+      return;
+    }
+
+    state.imageMode = false;
+    updateComposePlaceholder();
+
+    await generateImageWithPrompt(text);
+    return;
+  }
+
+  el.messageInput.value = "";
+  updateSendIcon();
+
+  let userMsgIndex = null;
+
+  if (file) {
+    if (file.type && file.type.startsWith("image/")) {
+      pushMessage("user", text || "Фото");
+    } else {
+      pushMessage("user", text || ("Файл: " + file.name));
+    }
+  } else {
+    pushMessage("user", text);
+  }
+
+  const chat = currentChat();
+  userMsgIndex = chat.messages.length - 1;
+
+  setComposeState("thinking");
+
+  const placeholder = file ? "Анализирую изображение…" : "…";
+  pushMessage("bot", placeholder);
+
+  const botIdx = chat.messages.length - 1;
+
+  try {
+    let responseText = "";
+
+    if (file) {
+      const fd = new FormData();
+      fd.append("file", file, file.name || "file");
+      fd.append("message", text || "Что на фото?");
+
+      responseText = await postForm("/analyze-file", fd);
+    } else {
+      responseText = await postJson("/send-message", { message: text });
+    }
+
+    chat.messages[botIdx].text = responseText || "(пустой ответ)";
+  } catch (err) {
+    chat.messages[botIdx].text = "Ошибка при обработке запроса.";
+    console.error(err);
+  }
+
+  renderChat();
+  setComposeState("idle");
+
+  if (file && file.type && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const imgBase64 = reader.result;
+      const msg = chat.messages[userMsgIndex];
+
+      if (msg) {
+        msg.html = `
+          <div style="margin-bottom:6px;">
+            <img
+              src="${imgBase64}"
+              style="
+                max-width:160px;
+                max-height:120px;
+                border-radius:10px;
+                display:block;
+                cursor:pointer;
+                box-shadow:0 4px 12px rgba(0,0,0,.15);
+              "
+              onclick="window.open('${imgBase64}', '_blank')"
+            />
+          </div>
+          <div>${escapeHtml(text || "Что на фото?")}</div>
+        `;
+        renderChat();
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  state.pendingFile = null;
+}
+
+
+async function saveToken() {
+  const token = document.getElementById("ngrok_token").value;
+  const res = await fetch("/save-token", {
+    method:"POST",
+    headers: adminJsonHeaders(),
+    body: JSON.stringify({token})
+  });
+  const data = await res.json();
+  document.getElementById("ngrok_status").textContent = data.message || data.error || "OK";
+}
+
+async function startNgrok() {
+  const res = await fetch("/start-ngrok", {
+    method: "POST",
+    headers: adminHeaders()
+  });
+
+  const data = await res.json();
+
+  const statusEl = document.getElementById("ngrok_status");
+  const linksWrap = document.getElementById("cloudpubLinks");
+
+  if (data.url && data.url.startsWith("http")) {
+    const cloudpubBase = data.url.replace(/\/$/, "");
+
+    statusEl.textContent = "CloudPub запущен и доступен";
+
+    document.getElementById("cloudpubLinkMain").href =
+      cloudpubBase + "/";
+
+    document.getElementById("cloudpubLinkMobile").href =
+      cloudpubBase + "/mobile";
+
+    document.getElementById("cloudpubLinkAlice").href =
+      cloudpubBase + "/alice";
+
+    linksWrap.classList.remove("hidden");
+  } else {
+    const errText = data.error || "Ошибка: CloudPub URL не получен";
+    statusEl.textContent = data.output ? (errText + "\n" + data.output) : errText;
+    linksWrap.classList.add("hidden");
+  }
+}
+
+
+
+function setSdBadge(running) {
+  const badge = document.getElementById("sdBadge");
+  if (!badge) return;
+  if (running) {
+    badge.textContent = "запущен";
+    badge.className = "badge ok";
+  } else {
+    badge.textContent = "не запущен";
+    badge.className = "badge warn";
+  }
+}
+
+async function sdStatus() {
+  const el = document.getElementById("sdStatus");
+  try {
+    const res = await fetch("/sd/status");
+    const data = await res.json();
+    setSdBadge(!!data.running);
+    if (el) el.textContent = data.running ? ("SD: " + (data.sd_url || "")) : "SD не запущен";
+    return !!data.running;
+  } catch (e) {
+    setSdBadge(false);
+    if (el) el.textContent = "Ошибка статуса SD: " + e;
+    return false;
+  }
+}
+
+async function sdStart() {
+  const el = document.getElementById("sdStatus");
+  el.textContent = "Запуск SD...";
+  const res = await fetch("/sd/start", {method:"POST", headers: adminHeaders()});
+  const data = await res.json();
+  el.textContent = data.message || data.error || "OK";
+  await sdRefresh();
+}
+
+async function sdStop() {
+  const el = document.getElementById("sdStatus");
+  el.textContent = "Остановка SD...";
+  const res = await fetch("/sd/stop", {method:"POST", headers: adminHeaders()});
+  const data = await res.json();
+  el.textContent = data.message || data.error || "OK";
+  await sdRefresh();
+}
+
+async function sdLoadModels() {
+  const select = document.getElementById("sdModelSelect");
+  const hint = document.getElementById("sdModelHint");
+  if (!select) return;
+
+  select.innerHTML = "";
+  const loading = document.createElement("option");
+  loading.value = "";
+  loading.textContent = "— загрузка —";
+  select.appendChild(loading);
+
+  try {
+    const res = await fetch("/sd/models");
+    const data = await res.json();
+
+    if (data.error) {
+      select.innerHTML = "";
+      const o = document.createElement("option");
+      o.value = "";
+      o.textContent = "— SD не запущен / ошибка —";
+      select.appendChild(o);
+      if (hint) hint.textContent = data.error;
+      return;
+    }
+
+    const models = data.models || [];
+    select.innerHTML = "";
+
+    if (models.length === 0) {
+      const o = document.createElement("option");
+      o.value = "";
+      o.textContent = "— моделей не найдено —";
+      select.appendChild(o);
+      if (hint) hint.textContent = "";
+      return;
+    }
+
+    models.forEach(m => {
+      const title = m.title || m.model_name || m.name || "";
+      if (!title) return;
+      const o = document.createElement("option");
+      o.value = title;
+      o.textContent = title;
+      select.appendChild(o);
+    });
+
+    if (hint) hint.textContent = "Если модель не применяется — выбери title ровно как в UI A1111. [web:22]";
+  } catch (e) {
+    select.innerHTML = "";
+    const o = document.createElement("option");
+    o.value = "";
+    o.textContent = "— ошибка загрузки —";
+    select.appendChild(o);
+    if (hint) hint.textContent = String(e);
+  }
+}
+
+async function sdApplyModel() {
+  const select = document.getElementById("sdModelSelect");
+  const el = document.getElementById("sdStatus");
+  const checkpoint = (select && select.value) ? select.value : "";
+
+  if (!checkpoint) {
+    el.textContent = "Выбери модель SD в списке.";
+    return;
+  }
+
+  el.textContent = "Применяю модель: " + checkpoint;
+  const res = await fetch("/sd/set-model", {
+    method: "POST",
+    headers: adminJsonHeaders(),
+    body: JSON.stringify({checkpoint})
+  });
+  const data = await res.json();
+  el.textContent = data.message || data.error || "OK";
+}
+
+async function sdUploadModel() {
+  const info = document.getElementById("sdUploadInfo");
+  const input = document.getElementById("sdModelFile");
+  if (!input || !input.files || input.files.length === 0) {
+    info.textContent = "Выбери файл модели (.safetensors/.ckpt).";
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("file", input.files[0]);
+
+  info.textContent = "Загрузка...";
+  try {
+    const res = await fetch("/sd/upload-model", {
+      method: "POST",
+      headers: adminHeaders(),
+      body: fd
+    });
+    const data = await res.json();
+    info.textContent = data.message || data.error || "OK";
+    try { await sdLoadModels(); } catch (_) {}
+  } catch (e) {
+    info.textContent = "Ошибка загрузки: " + e;
+  }
+}
+
+async function sdGenerate() {
+  const info = document.getElementById("sdGenInfo");
+  const img = document.getElementById("sdImage");
+
+  const prompt = document.getElementById("sdPrompt").value.trim();
+  const negative_prompt = document.getElementById("sdNegative").value.trim();
+  const steps = parseInt(document.getElementById("sdSteps").value || "25", 10);
+  const width = parseInt(document.getElementById("sdWidth").value || "512", 10);
+  const height = parseInt(document.getElementById("sdHeight").value || "512", 10);
+
+  if (!prompt) { info.textContent = "Введите prompt."; return; }
+
+  info.textContent = "⏳ Запуск задачи...";
+  if (img) { img.style.display = "none"; img.src = ""; }
+  if (_sdLastObjectUrl) { URL.revokeObjectURL(_sdLastObjectUrl); _sdLastObjectUrl = null; }
+  if (_sdPollingTimer) { clearTimeout(_sdPollingTimer); _sdPollingTimer = null; }
+
+  try {
+    const res = await fetch("/sd/txt2img_async", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({prompt, negative_prompt, steps, width, height})
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { info.textContent = data.error || ("HTTP " + res.status); return; }
+    info.textContent = "Задача отправлена, ждём результат...";
+    sdPollTask(data.task_id);
+  } catch (e) {
+    info.textContent = "Ошибка запуска задачи: " + e;
+  }
+}
+
+async function sdPollTask(task_id) {
+  const info = document.getElementById("sdGenInfo");
+  const img = document.getElementById("sdImage");
+
+  try {
+    const res = await fetch("/sd/task/" + encodeURIComponent(task_id));
+    if ((res.headers.get("Content-Type") || "").startsWith("image/")) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      _sdLastObjectUrl = url;
+      img.src = url;
+      img.style.display = "block";
+      info.textContent = "✅ Готово";
+      return;
+    }
+
+    const data = await res.json();
+    if (data.status === "pending" || data.status === "running") {
+      info.textContent = "Генерация: " + data.status + "...";
+      _sdPollingTimer = setTimeout(() => sdPollTask(task_id), 2000);
+      return;
+    }
+    if (data.status === "error") { info.textContent = "Ошибка: " + (data.error || "unknown"); return; }
+    info.textContent = "Неизвестный статус задачи.";
+  } catch (e) {
+    info.textContent = "Ошибка при опросе задачи: " + e;
+  }
+}
+
+async function sdRefresh() {
+  const running = await sdStatus();
+  if (running) await sdLoadModels();
+  else {
+    const select = document.getElementById("sdModelSelect");
+    if (select) {
+      select.innerHTML = "";
+      const o = document.createElement("option");
+      o.value = "";
+      o.textContent = "— SD не запущен —";
+      select.appendChild(o);
+    }
+  }
+}
+
+async function hfDownloadAsync() {
+  const info = document.getElementById("hfInfo");
+  const bar = document.getElementById("hfProgress");
+
+  const repo_id = (document.getElementById("hfRepoId").value || "").trim();
+  const filename = (document.getElementById("hfFilename").value || "").trim();
+  const revision = (document.getElementById("hfRevision").value || "").trim();
+
+  if (!repo_id || !filename) {
+    info.textContent = "Нужно указать repo_id и filename.";
+    return;
+  }
+
+  if (_hfTimer) { clearTimeout(_hfTimer); _hfTimer = null; }
+  bar.value = 0;
+  info.textContent = "Запуск загрузки...";
+
+  const res = await fetch("/hf/download_async", {
+    method: "POST",
+    headers: adminJsonHeaders(),
+    body: JSON.stringify({repo_id, filename, revision})
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) {
+    info.textContent = data.error || ("HTTP " + res.status);
+    return;
+  }
+  hfPoll(data.task_id);
+}
+
+async function hfPoll(task_id) {
+  const info = document.getElementById("hfInfo");
+  const bar = document.getElementById("hfProgress");
+
+  try {
+    const res = await fetch("/hf/task/" + encodeURIComponent(task_id));
+    const t = await res.json();
+
+    if (t.error && !t.status) { info.textContent = t.error; return; }
+
+    bar.value = t.percent || 0;
+    const mb = (x) => (x/1024/1024).toFixed(1);
+    info.textContent =
+      (t.status || "unknown") + " — " +
+      (t.percent || 0) + "% (" + mb(t.downloaded||0) + " / " + mb(t.total||0) + " MB)";
+
+    if (t.status === "done") {
+      info.textContent = "✅ Готово: " + (t.saved_to || "");
+      try { await sdLoadModels(); } catch (_) {}
+      return;
+    }
+    if (t.status === "error") {
+      info.textContent = "❌ Ошибка: " + (t.error || "unknown");
+      return;
+    }
+
+    _hfTimer = setTimeout(() => hfPoll(task_id), 800);
+  } catch (e) {
+    info.textContent = "Ошибка прогресса: " + e;
+  }
+}
+
+async function saveKeys() {
+  const gigachatKey = document.getElementById("gigachatKey").value;
+  const gigachat_model = document.getElementById("gigachatModel").value || "GigaChat";
+
+  const payload = { gigachat_model };
+  if (gigachatKey && gigachatKey.trim() !== "") payload.gigachat_api_key = gigachatKey.trim();
+
+  const res = await fetch("/save-keys", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+
+  hasGigachatKey = !!data.has_gigachat_key;
+
+  document.getElementById("gigachatKey").value = "";
+
+  updateProviderUI(currentProvider);
+  document.getElementById("chatOutput").textContent = data.message || "Сохранено";
+}
+const themeBtn = document.getElementById("themeToggleBtn");
+
+function applyTheme(theme){
+  if (theme === "light"){
+    document.body.classList.add("light");
+    themeBtn.textContent = "🌞";
+  } else {
+    document.body.classList.remove("light");
+    themeBtn.textContent = "🌙";
+  }
+  localStorage.setItem("theme", theme);
+}
+
+const savedTheme = localStorage.getItem("theme") || "dark";
+applyTheme(savedTheme);
+
+themeBtn.addEventListener("click", () => {
+  const isLight = document.body.classList.contains("light");
+  applyTheme(isLight ? "dark" : "light");
+});
+
+</script>
+
+</body>
+</html>

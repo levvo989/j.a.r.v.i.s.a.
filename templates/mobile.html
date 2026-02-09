@@ -1,0 +1,3419 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>J.A.R.V.I.S.A Mobile</title>
+
+<style>
+:root{
+  --bg:#f5f7ff;
+  --card:#ffffff;
+
+  --accent:#5b6bff;
+  --accent2:#8b5bff;
+  --accent-soft:#e0e5ff;
+
+  --text:#1f2430;
+  --muted:#8088aa;
+
+  --border:#d5daf5;
+  --ok:#20b26b;
+
+  --err1:#ff4d5f;
+  --err2:#ff8a5b;
+
+  --topbar-h: 58px;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+button, a{
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus, a:focus{
+  outline: none;
+}
+
+.app{
+  max-width:430px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--card);
+  display:flex;
+  flex-direction:column;
+}
+
+/* overlay for drawer */
+.drawer-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.18);
+  z-index: 19;
+  display: none;
+}
+.drawer-overlay.open{ display:block; }
+/* ===== stop button ===== */
+.stop-btn{
+  position: absolute;
+  right: 6px;
+  top: 6px;
+
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+
+  border: 0;
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  color: #fff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  opacity: 0;
+  pointer-events: none;
+
+  box-shadow: 0 12px 22px rgba(91,107,255,.22);
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 45;
+}
+.stop-btn svg{
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: currentColor;
+}
+
+.scroll-down-btn{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%) scale(.9);
+
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+
+  background: #fff;
+  border: 2px solid #cfd6ff;
+  color: #5b6bff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow: 0 10px 18px rgba(91,107,255,.18);
+
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+
+  z-index: 46;
+}
+
+.scroll-down-btn.show{
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) scale(1);
+}
+
+.scroll-down-btn:active{
+  transform: translateX(-50%) scale(.94);
+}
+
+.scroll-down-btn svg{
+  width: 18px;
+  height: 18px;
+}
+
+
+.stop-btn.show{
+  opacity: 1;
+  pointer-events: auto;      /* вќ— */
+  transform: scale(1);
+}
+
+
+.stop-btn:active{
+  transform: scale(.94);
+}
+
+.stop-btn:hover{
+  box-shadow: 0 0 0 4px rgba(195,179,255,.25);
+}
+
+/* sticky topbar */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--topbar-h);
+  padding: 12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#fff;
+  border-bottom: 1px solid #eef0ff;
+}
+/* ===== model chip ===== */
+.model-chip{
+  position:absolute;
+  top: -54px;
+  right: 6px;
+  height: 44px;
+  padding: 0 14px 0 12px;
+  z-index: 30;
+  border-radius: 999px;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  border: 2px solid #cfd6ff;
+  background:#fff;
+  color:#5b6bff;
+
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.model-chip:active{
+  transform: scale(.96);
+}
+
+.model-chip.ok{
+  border-color: #20b26b;
+  color: #20b26b;
+  background: #eafff3;
+  box-shadow: 0 0 0 3px rgba(32,178,107,.25);
+}
+/* РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ вЂ” РёРєРѕРЅРєР° + С‚РµРєСЃС‚ */
+.model-chip span{
+  display: inline;
+}
+
+/* СѓР·РєРёРµ СЌРєСЂР°РЅС‹ */
+@media (max-width: 360px){
+  .model-chip{
+    padding: 0;      /* РєРѕРјРїР°РєС‚РЅРѕ */
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+  }
+
+  .model-chip span{
+    display: none;        /* в¬…пёЏ СЃРєСЂС‹РІР°РµРј С‚РµРєСЃС‚ */
+  }
+}
+.model-item.active{
+  background: #eafff3;
+  color: #20b26b;
+  font-weight: 800;
+}
+
+.chip-icon{
+  width:18px;
+  height:18px;
+}
+
+/* ===== popup list ===== */
+.model-popup{
+  position:absolute;
+  right: 6px;
+  bottom: 62px;
+  min-width: 140px;
+
+  background:#fff;
+  border:1px solid #e1e5ff;
+  border-radius:14px;
+  box-shadow: 0 18px 36px rgba(25,35,90,.18);
+
+  padding:6px;
+  display:none;
+  z-index:50;
+}
+
+.model-popup.open{ display:block; }
+
+.model-item{
+  padding: 8px 10px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  color:#3a42a0;
+}
+
+.model-item:hover{
+  background:#eef1ff;
+}
+
+.model-item.active{
+  background:#e6ebff;
+  color:#5b6bff;
+}
+.bot-model-label{
+  font-size:11px;
+  color:#9aa2c7;
+  margin: 0 0 2px 6px;
+  font-weight:600;
+}
+.icon-btn{
+  width:34px;height:34px;
+  border-radius: 17px;
+  border:1px solid var(--accent-soft);
+  background:#fff;
+  color:var(--accent);
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.icon-btn svg{
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.title{ font-size:18px; font-weight:800; }
+.subtitle{ font-size:12px; color:var(--muted); }
+
+/* main wrap */
+.mainwrap{
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+}
+
+/* screens */
+.screen{
+  flex:1;
+  display:none;
+  flex-direction:column;
+  padding: 8px 14px calc(160px + env(safe-area-inset-bottom));
+}
+.screen.active{ display:flex; }
+
+/* start */
+.h1{ margin: 28px 2px 6px; font-size:22px; font-weight:900; }
+.p{ margin:0 2px; font-size:14px; color:var(--muted); line-height:1.35; }
+.block{ margin-top:18px; }
+.label{ font-size:12px;color:var(--muted);margin:0 2px 6px; }
+.input{
+  width:100%;
+  padding: 11px 14px;
+  border-radius: 999px;
+  border:1px solid var(--border);
+  outline:none;
+  font-size:14px;
+}
+.input:focus{ border-color: var(--accent); }
+.btn{
+  width:100%;
+  border:0;
+  margin-top:14px;
+  padding: 12px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+}
+.btn2{
+  width:100%;
+  border:1px solid var(--border);
+  margin-top:10px;
+  padding: 12px 14px;
+  border-radius: 999px;
+  background:#fff;
+  color:var(--accent);
+  font-weight:800;
+  font-size:14px;
+}
+.note{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.3; }
+
+body.start-mode{
+  background: linear-gradient(180deg, #ffffff 0%, #CDD1FF 100%);
+}
+
+body.start-mode .app{
+  background: transparent;
+  display: flex;
+  max-width: min(760px, 92vw);
+  margin: 0 auto;
+  border-left: none;
+  border-right: none;
+}
+
+body.start-mode .topbar,
+body.start-mode .drawer{
+  display: none;
+}
+
+body.start-mode .mainwrap{
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.start-screen{
+  width: 100%;
+  max-width: 420px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.start-logo{
+  width: 164px;
+  height: 164px;
+  margin-top: 0;
+}
+
+.start-title{
+  margin-top: 24px;
+  font-size: 30px;
+  font-weight: 900;
+  color: #101219;
+}
+
+.start-subtitle{
+  margin-top: 6px;
+  font-size: 16px;
+  color: #1f2430;
+}
+
+.start-input-wrap{
+  position: relative;
+  width: min(360px, 100%);
+  margin-top: 26px;
+}
+
+.start-input{
+  width: 100%;
+  padding: 12px 62px 12px 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,0.35);
+  background: #fff;
+  font-size: 16px;
+  color: #1f2430;
+  outline: none;
+}
+
+.start-input::placeholder{
+  color: #a3a3a3;
+}
+
+.start-input:focus{
+  border-color: rgba(108, 123, 255, 0.6);
+}
+
+.start-check-btn{
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.start-check-btn svg{
+  width: 44px;
+  height: 44px;
+  display: block;
+}
+
+.start-check-icon{
+  display: none;
+}
+
+.start-check-btn[data-status="idle"] .start-check-icon.idle,
+.start-check-btn[data-status="checking"] .start-check-icon.idle,
+.start-check-btn[data-status="success"] .start-check-icon.success,
+.start-check-btn[data-status="error"] .start-check-icon.error{
+  display: block;
+}
+
+.start-note{
+  width: min(360px, 100%);
+  margin-top: 16px;
+  font-size: 14px;
+  color: #111;
+  line-height: 1.3;
+}
+
+.start-continue{
+  margin-top: 38px;
+  width: 94px;
+  height: 94px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.start-continue:not([disabled]){
+  filter: drop-shadow(0 10px 22px rgba(104, 76, 255, 0.38));
+}
+
+.start-continue:active{
+  transform: scale(.96);
+}
+
+.start-continue svg{
+  width: 94px;
+  height: 94px;
+  display: block;
+}
+
+.start-continue[disabled]{
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.start-clear{
+  margin-top: 18px;
+  border: none;
+  background: transparent;
+  color: #7a7a7a;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* chat */
+.chat-list{ flex:1; overflow:auto; padding: 6px 0 10px; min-height:0; }
+.row{ display:flex; margin: 7px 0; }
+.row.user{ justify-content:flex-end; }
+.row.bot{ justify-content:flex-start; }
+.bubble{
+  max-width:82%;
+  padding: 9px 11px;
+  border-radius: 14px;
+  font-size:14px;
+  line-height:1.35;
+
+  white-space:pre-wrap;
+  word-break:normal;        /* вњ” РќР• Р»РѕРјР°РµРј СЃР»РѕРІР° */
+  overflow-wrap:break-word;/* вњ” РїРµСЂРµРЅРѕСЃ С‚РѕР»СЊРєРѕ РµСЃР»Рё СЃР»РѕРІРѕ РћР§Р•РќР¬ РґР»РёРЅРЅРѕРµ */
+}
+
+.bubble.user{ background:#e6f0ff; }
+.bubble.bot{ background:#f0f3ff; }
+.bubble.bot h3{
+  font-size:16px;
+  margin:8px 0 6px;
+  font-weight:800;
+}
+
+.bubble.bot h4{
+  font-size:14px;
+  margin:6px 0 4px;
+  font-weight:700;
+}
+.model-btn{
+  position:absolute;
+  right: 58px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background:#fff;
+  font-size:12px;
+  font-weight:800;
+  color: var(--accent);
+  cursor:pointer;
+}
+
+.model-btn.ok{
+  background: #e6fff1;
+  border-color: var(--ok);
+  color: var(--ok);
+  box-shadow: 0 0 0 3px rgba(32,178,107,.25);
+}
+@media (max-width: 480px){
+  .model-chip{
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .model-chip span{
+    display: none;   /* в¬…пёЏ СЃРєСЂС‹РІР°РµРј С‚РµРєСЃС‚ */
+  }
+}
+
+
+.bubble.bot p{
+  margin:6px 0;
+  line-height:1.45;
+}
+
+.bubble.bot ol,
+.bubble.bot ul{
+  margin:6px 0 8px 18px;
+  padding:0;
+}
+
+.bubble.bot li{
+  margin-bottom:4px;
+}
+
+.bubble.bot strong{
+  font-weight:800;
+}
+.bubble.bot code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: #e6eaff;
+  border: 1px solid #d9dfff;
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+.bubble.bot .code-block{
+  margin: 10px 0;
+  border: 1px solid #2d3a78;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f152f;
+}
+.bubble.bot .code-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #223067;
+  background: #141d44;
+  color: #b8c6ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.bubble.bot .code-copy-btn{
+  border: 1px solid #3a4a92;
+  background: #1a2554;
+  color: #dfe6ff;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bubble.bot .code-copy-btn:active{
+  transform: scale(.97);
+}
+.bubble.bot pre{
+  margin: 0;
+  padding: 10px 12px;
+  color: #e8ecff;
+  max-height: 320px;
+  overflow: auto;
+}
+.bubble.bot pre code{
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 0;
+  white-space: pre;
+  display: block;
+}
+.bubble.bot blockquote{
+  margin: 8px 0;
+  padding: 6px 10px;
+  border-left: 3px solid #8da0ff;
+  background: #e9edff;
+  border-radius: 8px;
+}
+
+.bubble.bot table.tbl{
+  min-width:700px;   /* С€РёСЂРµ РїСѓР·С‹СЂСЏ */
+  border-collapse:collapse;
+  margin:6px 0;
+  font-size:13px;
+}
+
+.bubble.bot table.tbl td{
+  border:1px solid #e1e5ff;
+  padding:6px 8px;
+  vertical-align:top;
+
+  word-break:normal;
+  white-space:normal;
+}
+.bubble.bot table.tbl tr:first-child td{
+  font-weight:800;
+  background:#eef1ff;
+}
+
+.bubble.bot .table-wrap{
+  overflow-x:auto;
+  margin:8px 0;
+}
+
+.bubble.bot .table-wrap::-webkit-scrollbar{
+  height:6px;
+}
+
+.bubble.bot .table-wrap::-webkit-scrollbar-thumb{
+  background:#c7ccff;
+  border-radius:10px;
+}
+.bubble.bot .final-summary{
+  margin-top:10px;
+  padding:10px 12px;
+  background:#e8ecff;
+  border-left:4px solid #6b7cff;
+  border-radius:8px;
+}
+
+.bubble.bot .final-summary h4{
+  margin-top:0;
+}
+.bubble.bot .final-summary:before{
+  content:"Итог";
+  display:block;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+/* clickable links + basic formatting */
+.bubble.bot a{
+  color:#2f5bff;
+  text-decoration:none;
+  font-weight:800;
+}
+.bubble.bot a:hover{ text-decoration:underline; }
+
+/* actions */
+.actions{
+  margin-top:6px;
+  display:flex;
+  gap:10px;
+  justify-content:flex-start;
+  align-items:center;
+  opacity:.88;
+}
+.action-btn{
+  width:22px;
+  height:22px;
+  padding:0;
+  border:0;
+  background:transparent;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.action-btn svg{
+  width:14px;
+  height:14px;
+  display:block;
+}
+.action-btn:hover{ background: rgba(147,162,255,.10); }
+.action-btn:active{ background: rgba(147,162,255,.14); transform: scale(.96); }
+.action-btn:focus-visible{
+  outline: 2px solid rgba(147,162,255,.65);
+  outline-offset: 2px;
+}
+
+/* ok circle after copy */
+.action-btn.ok{
+  width:26px;
+  height:26px;
+  border-radius:999px;
+  background: rgba(32,178,107,.10);
+  box-shadow: 0 8px 16px rgba(32,178,107,.12);
+  outline: none;
+}
+.action-btn.ok svg{ width:16px; height:16px; }
+
+/* typing */
+.typing-bubble{
+  background:#f0f3ff;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display:inline-flex;
+  align-items:center;
+}
+.dots{ display:inline-flex; gap:6px; align-items:center; }
+.dot{
+  width:7px; height:7px;
+  border-radius:50%;
+  background: #6d79d6;
+  opacity:.25;
+  animation: dotPulse 1.2s infinite;
+}
+.dot:nth-child(2){ animation-delay: .15s; }
+.dot:nth-child(3){ animation-delay: .3s; }
+@keyframes dotPulse{
+  0%{ transform: translateY(0); opacity:.25; }
+  30%{ transform: translateY(-3px); opacity:1; }
+  60%{ transform: translateY(0); opacity:.35; }
+  100%{ transform: translateY(0); opacity:.25; }
+}
+
+.helper{ margin: 8px 2px 6px; font-size:18px; font-weight:900; color:#5a66b8; }
+.cards{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.card{
+  padding: 9px 10px;
+  border-radius: 12px;
+  background:#f3f5ff;
+  color:var(--muted);
+  font-size:13px;
+  border:1px solid #eef0ff;
+}
+
+/* floating compose */
+.bottom{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 430px;
+  background: transparent;
+  box-shadow: none;
+  padding: 0 14px calc(14px + env(safe-area-inset-bottom));
+  z-index: 18;
+}
+.bottom::before{
+  content:"";
+  position:absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  height: 92px;
+  pointer-events:none;
+  background: radial-gradient(closest-side, rgba(245,247,255,.92), rgba(245,247,255,0));
+  filter: blur(6px);
+}
+
+/* row above compose */
+.above-compose{
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0 2px 10px;
+}
+
+/* small round button like old left image button */
+.above-round-btn{
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--accent-soft);
+  background: #fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 12px 22px rgba(91,107,255,.10);
+}
+
+.above-round-btn.active{
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px rgba(91,107,255,.25),
+    0 12px 22px rgba(91,107,255,.25);
+  background:#fff;
+}
+
+.above-round-btn svg{ width: 28px; height: 28px; display:block; }
+
+/* attachment chip */
+.attach-chip{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  max-width: 65%;
+  height: 36px;
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  background:#f3f5ff;
+  border:1px solid #eef0ff;
+}
+
+.attach-chip-name{
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.attach-clear-btn{
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background:#fff;
+  color: var(--accent);
+  font-weight: 900;
+  cursor:pointer;
+  line-height: 26px;
+  padding:0;
+}
+.attach-clear-btn:active{ transform: scale(0.96); }
+
+.compose{
+  --g1: var(--accent);
+  --g2: var(--accent2);
+  position: relative;
+  width: 100%;
+  min-height: 56px;
+  height: auto;
+  border-radius: 999px;
+  background: #fff;
+  display:flex;
+  align-items:flex-start;
+  padding: 8px 62px 8px 62px;  /* left attach + right send */
+  box-shadow: 0 10px 22px rgba(25,35,90,.10);
+}
+.compose.is-multiline{
+  border-radius: 16px;
+}
+@media (max-width: 480px){
+  .compose{
+    padding-right: 62px;
+  }
+}
+@media (max-width: 480px){
+  .compose .model-chip{
+    right: 6px;
+  }
+}
+
+@media (max-width: 480px){
+  .model-chip{
+    right: 6px;
+  }
+}
+
+/* left button (attach) */
+.imgmode-btn{
+  position:absolute;
+  left: 8px;
+  top: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--accent-soft);
+  background: #fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 0;
+  cursor: pointer;
+}
+.imgmode-btn svg{ width: 26px; height: 26px; }
+.imgmode-btn.active{
+  border-color: rgba(91,107,255,.55);
+  background: rgba(147,162,255,.10);
+}
+
+.compose::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  opacity: .8;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events:none;
+}
+.compose.state-thinking{ --g1:#5bb4ff; --g2:#7a5bff; }
+.compose.state-error{ --g1:var(--err1); --g2:var(--err2); }
+
+.compose textarea{
+  width:100%;
+  border:0;
+  outline:none;
+  font-size:16px;
+  line-height: 1.38;
+  font-family: inherit;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  margin: 8px 0 0;
+  min-height: 24px;
+  max-height: 96px;
+  resize: none;
+  overflow-y: hidden;
+  field-sizing: content;
+}
+.compose textarea::placeholder{
+  color: #c2c9ea;
+  font-weight: 700;
+}
+
+.badge-btn{
+  position:absolute;
+  right: 6px;
+  top: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border:0;
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 12px 22px rgba(91,107,255,.22);
+}
+.badge-btn svg{ width: 26px; height: 26px; }
+.badge-btn svg{ display:none; }
+.badge-btn svg.icon-show{ display:block; }
+.badge-btn svg.icon-hide{ display:none; }
+
+.compose.state-thinking #iconStar{
+  animation: spin 0.9s linear infinite;
+  transform-origin: center;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Drawer */
+.drawer{
+  position:fixed;
+  left:0;
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  width:270px;
+  background:#fff;
+  box-shadow: 6px 0 20px rgba(0,0,0,.14);
+  transform: translateX(-100%);
+  transition: transform .22s ease;
+  z-index:20;
+  padding: 12px;
+  display:flex;
+  flex-direction:column;
+}
+.drawer.open{ transform:translateX(0); }
+.drawer-title{ font-weight:900; margin: 2px 0 10px; }
+
+.drawer-actions{
+  display:flex;
+  gap:8px;
+  margin-top: 6px;
+}
+.small-btn{
+  flex:1;
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius: 999px;
+  padding: 9px 10px;
+  font-weight:800;
+  color:var(--accent);
+}
+.items{
+  margin-top:10px;
+  overflow:auto;
+  padding-right:4px;
+  min-height:0;
+}
+.item{
+  padding: 9px 10px;
+  border-radius: 12px;
+  background:#f4f5ff;
+  border:1px solid #eef0ff;
+  margin-bottom:8px;
+  font-size:13px;
+  cursor:pointer;
+  position: relative;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.item.active{ border-color: var(--accent); background:#eef1ff; }
+.item .t{ font-weight:800; }
+.item .s{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+.item .meta{ flex:1 1 auto; min-width:0; }
+.item .xbtn{
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  border-radius: 999px;
+  border:1px solid #eef0ff;
+  background:#fff;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+.item .xbtn svg{ width:20px; height:20px; }
+.item.active .xbtn{ display:flex; }
+.item .xbtn:active{ transform: scale(0.96); }
+
+/* settings */
+.group{ margin-top:14px; }
+.tabs{
+  display:inline-flex;
+  border:1px solid var(--border);
+  border-radius: 999px;
+  overflow:hidden;
+}
+.tab{
+  border:0;
+  background:transparent;
+  padding: 7px 11px;
+  font-weight:900;
+  font-size:13px;
+  color:var(--muted);
+}
+.tab.active{ background:var(--accent); color:#fff; }
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+.badge{
+  display:inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size:12px;
+  border:1px solid var(--border);
+  color:var(--muted);
+}
+.badge.ok{ border-color: var(--ok); color: var(--ok); }
+.badge.err{ border-color: var(--err1); color: var(--err1); }
+
+.models-box{
+  border:1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  max-height: 170px;
+  overflow:auto;
+  background:#fff;
+}
+.model{
+  padding: 8px 10px;
+  border-radius: 12px;
+  background:#f4f5ff;
+  border:1px solid #eef0ff;
+  margin: 6px 0;
+  font-size:13px;
+  cursor:pointer;
+}
+.model.active{ border-color: var(--accent); background:#eef1ff; }
+hr.sep{ border:0; border-top:1px solid #eef0ff; margin: 14px 0 8px; }
+
+/* tablet wide tweaks */
+@media (min-width: 768px){
+  .app{ max-width: clamp(720px, 72vw, 980px); border-left: 1px solid #eef0ff; border-right: 1px solid #eef0ff; }
+  .screen{ padding-left: 22px; padding-right: 22px; padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
+  .bubble{ max-width: 74%; font-size: 15px; padding: 10px 12px; }
+  .bottom{ max-width: clamp(720px, 72vw, 980px); padding-left: 22px; padding-right: 22px; }
+  .drawer{ width: 340px; }
+}
+
+/* desktop mode: permanent sidebar */
+@media (min-width: 900px){
+  .app{
+    max-width: min(1200px, 92vw);
+    margin: 0 auto;
+    display:grid;
+    grid-template-columns: 340px 1fr;
+    grid-template-rows: var(--topbar-h) 1fr;
+  }
+  .drawer-overlay{ display:none !important; }
+
+  .drawer{
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    transform: none !important;
+    transition: none;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    border-right: 1px solid #eef0ff;
+    box-shadow: none;
+    padding-top: 14px;
+    width: auto;
+  }
+
+  .topbar{
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+  }
+
+  .mainwrap{
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+  }
+
+  /* bottom sticks inside main column */
+  .bottom{
+    position: sticky;
+    left: auto;
+    transform: none;
+    max-width: none;
+    width: 100%;
+  }
+
+  #menuBtn{ visibility: hidden; }
+  #closeDrawerBtn{ display: none; }
+}
+
+  #fileInput {
+  display: none;
+}
+
+
+@media (min-width: 1024px){
+  .app{ max-width: min(1280px, 90vw); }
+  .drawer{ grid-template-rows: auto 1fr; }
+  .bubble{ max-width: 70%; }
+}
+</style>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+</head>
+
+<body class="start-mode">
+<div class="app">
+
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+
+  <div id="drawer" class="drawer">
+    <div class="drawer-title">История чатов</div>
+    <div class="drawer-actions">
+      <button id="newChatBtn" class="small-btn" type="button">Новый</button>
+      <button id="closeDrawerBtn" class="small-btn" type="button">Закрыть</button>
+    </div>
+    <div id="drawerItems" class="items"></div>
+  </div>
+
+  <div class="topbar">
+    <button id="menuBtn" class="icon-btn" type="button" aria-label="История чатов">
+      <svg viewBox="0 0 698 552" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M645 446C674.271 446 698 469.729 698 499C698 528.271 674.271 552 645 552H53C23.7289 552 0 528.271 0 499C0 469.729 23.7289 446 53 446H645ZM645 223C674.271 223 698 246.729 698 276C698 305.271 674.271 329 645 329H53C23.7289 329 0 305.271 0 276C0 246.729 23.7289 223 53 223H645ZM645 0C674.271 0 698 23.7289 698 53C698 82.2711 674.271 106 645 106H53C23.7289 106 0 82.2711 0 53C0 23.7289 23.7289 0 53 0H645Z" fill="url(#menuIconGrad)"/>
+        <defs>
+          <linearGradient id="menuIconGrad" x1="0" y1="0" x2="698" y2="552" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7D9FFF"/>
+            <stop offset="1" stop-color="#6E66FF"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+    <div style="text-align:center;">
+      <div id="topTitle" class="title">J.A.R.V.I.S.A</div>
+      <div id="topSub" class="subtitle"></div>
+    </div>
+    <button id="settingsBtn" class="icon-btn" type="button" aria-label="Настройки">
+      <svg viewBox="0 0 362 368" aria-hidden="true">
+        <path d="M215.608 0C223.892 0 230.608 6.71573 230.608 15V57.5244C243.187 62.511 254.844 69.3206 265.255 77.626L302.713 56C309.888 51.8581 319.061 54.316 323.203 61.4902L358.203 122.112C362.345 129.287 359.887 138.46 352.713 142.603L315.095 164.32C316.026 170.746 316.512 177.316 316.512 184C316.512 190.691 316.026 197.269 315.092 203.702L315.608 204L353.713 226C360.887 230.142 363.345 239.316 359.203 246.49L324.203 307.112C320.061 314.287 310.888 316.744 303.713 312.603L265.237 290.388C254.83 298.686 243.179 305.491 230.608 310.475V353C230.608 361.284 223.892 368 215.608 368H145.608C137.323 368 130.608 361.284 130.608 353V310.552C118.112 305.62 106.522 298.89 96.1566 290.683L95.6077 291L57.5023 313C50.3279 317.142 41.1541 314.684 37.012 307.51L2.01201 246.888C-2.12992 239.713 0.328122 230.54 7.50224 226.397L45.9993 204.17C45.0208 197.589 44.512 190.854 44.512 184C44.512 177.306 44.9977 170.725 45.9319 164.29L45.6077 164.103L7.50224 142.103C0.328127 137.96 -2.12992 128.787 2.01201 121.612L37.012 60.9902C41.1541 53.8159 50.3279 51.3581 57.5023 55.5L95.7923 77.6064C106.251 69.2675 117.965 62.4367 130.608 57.4473V15C130.608 6.71573 137.323 0 145.608 0H215.608ZM180.512 110C139.643 110 106.512 143.131 106.512 184C106.512 224.869 139.643 258 180.512 258C221.381 258 254.512 224.869 254.512 184C254.512 143.131 221.381 110 180.512 110Z" fill="url(#settingsGrad)"/>
+        <defs>
+          <linearGradient id="settingsGrad" x1="0" y1="11.5" x2="361" y2="368" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#80ABFF"/>
+            <stop offset="1" stop-color="#7564D2"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mainwrap">
+
+    <div id="screenStart" class="screen start-screen active">
+		<svg class="start-logo" viewBox="0 0 1024 1024" aria-hidden="true">
+				<g clip-path="url(#startLogoClip)">
+				  <rect width="1024" height="1024" rx="512" fill="white"/>
+				  <rect width="1024" height="1024" fill="url(#startLogoGradient)"/>
+				  <path d="M511.998 311.976C581.003 232.404 648.098 190.813 685.103 212.178C708.813 225.867 716.316 263.177 709.596 314.402C760.822 307.683 798.133 315.187 811.822 338.897C833.187 375.902 791.593 442.994 712.022 511.999C791.594 581.004 833.186 648.097 811.821 685.103C798.132 708.813 760.821 716.316 709.595 709.596C716.314 760.822 708.812 798.133 685.101 811.822C648.096 833.187 581.003 791.594 511.999 712.023C442.995 791.594 375.903 833.186 338.898 811.821C315.188 798.132 307.684 760.822 314.404 709.595C263.178 716.314 225.868 708.812 212.178 685.102C190.814 648.097 232.405 581.004 311.975 511.999C232.405 442.995 190.812 375.903 212.177 338.898C225.866 315.187 263.176 307.684 314.402 314.403C307.683 263.177 315.186 225.867 338.896 212.178C375.901 190.813 442.994 232.405 511.998 311.976Z" fill="white"/>
+				  <path d="M512 165.795C563.007 165.795 606.288 264.922 621.581 402.418C759.077 417.711 858.204 460.992 858.204 511.999C858.204 563.006 759.077 606.286 621.581 621.579C606.288 759.076 563.007 858.204 512 858.204C460.993 858.204 417.711 759.077 402.418 621.58C264.922 606.287 165.795 563.006 165.795 511.999C165.795 460.992 264.922 417.71 402.418 402.417C417.711 264.921 460.993 165.795 512 165.795Z" fill="white"/>
+				</g>
+				<defs>
+				  <linearGradient id="startLogoGradient" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+					<stop stop-color="#86C5FF"/>
+					<stop offset="1" stop-color="#6130FF"/>
+				  </linearGradient>
+				  <clipPath id="startLogoClip">
+					<rect width="1024" height="1024" rx="512" fill="white"/>
+				  </clipPath>
+				</defs>
+			  </svg>
+
+      <div class="start-title">Добро пожаловать!</div>
+      <div id="startStatusText" class="start-subtitle">Введи CloudPub URL (туннель до твоего ПК)</div>
+
+      <div class="start-input-wrap">
+        <input id="baseUrlInput" class="start-input" placeholder="https://xxxxx.cloudpub.ru" />
+        <button id="startCheckBtn" class="start-check-btn" data-status="idle" type="button" aria-label="Проверить ссылку">
+          <span class="start-check-icon idle">
+            <svg viewBox="0 0 455 455" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="227.5" cy="227.5" r="227.5" fill="url(#idleGrad)"/>
+              <path d="M195.619 278.686V274.46C195.702 259.96 196.987 248.401 199.472 239.783C202.041 231.166 205.77 224.206 210.658 218.903C215.547 213.6 221.43 208.794 228.308 204.485C233.445 201.171 238.044 197.732 242.104 194.169C246.164 190.606 249.395 186.67 251.798 182.362C254.201 177.97 255.403 173.081 255.403 167.695C255.403 161.978 254.036 156.965 251.301 152.656C248.567 148.348 244.88 145.033 240.239 142.713C235.682 140.393 230.628 139.233 225.076 139.233C219.69 139.233 214.594 140.434 209.788 142.837C204.982 145.157 201.047 148.638 197.981 153.278C194.915 157.835 193.258 163.511 193.009 170.305H142.299C142.713 153.733 146.691 140.062 154.231 129.29C161.771 118.435 171.756 110.356 184.185 105.053C196.614 99.6674 210.327 96.9744 225.325 96.9744C241.814 96.9744 256.397 99.7088 269.075 105.178C281.752 110.563 291.695 118.394 298.904 128.668C306.113 138.943 309.717 151.33 309.717 165.831C309.717 175.526 308.102 184.143 304.87 191.683C301.721 199.141 297.288 205.769 291.571 211.57C285.854 217.287 279.101 222.466 271.312 227.106C264.766 231 259.38 235.06 255.154 239.286C251.011 243.512 247.904 248.401 245.832 253.952C243.844 259.504 242.808 266.34 242.725 274.46V278.686H195.619ZM220.229 358.232C211.943 358.232 204.858 355.331 198.975 349.531C193.175 343.648 190.316 336.605 190.399 328.402C190.316 320.282 193.175 313.321 198.975 307.521C204.858 301.721 211.943 298.821 220.229 298.821C228.1 298.821 235.019 301.721 240.985 307.521C246.951 313.321 249.975 320.282 250.058 328.402C249.975 333.871 248.525 338.884 245.708 343.441C242.974 347.915 239.369 351.52 234.895 354.254C230.42 356.906 225.532 358.232 220.229 358.232Z" fill="white"/>
+              <defs>
+                <linearGradient id="idleGrad" x1="0" y1="34.2872" x2="455" y2="455" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#D0D4FC"/>
+                  <stop offset="1" stop-color="#7D85FF"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span class="start-check-icon success">
+			<svg width="455" height="455" viewBox="0 0 455 455" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<circle cx="227.5" cy="227.5" r="227.5" fill="url(#paint0_linear_0_1)"/>
+			<path d="M113 211L214 326" stroke="white" stroke-width="40" stroke-linecap="round"/>
+			<path d="M214 326L342 129" stroke="white" stroke-width="40" stroke-linecap="round"/>
+			<defs>
+			<linearGradient id="paint0_linear_0_1" x1="4.17107e-06" y1="34.2872" x2="455" y2="455" gradientUnits="userSpaceOnUse">
+			<stop stop-color="#80FFB5"/>
+			<stop offset="1" stop-color="#0ACA00"/>
+			</linearGradient>
+			</defs>
+			</svg>
+            </svg>
+          </span>
+          <span class="start-check-icon error">
+            <svg viewBox="0 0 455 455" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="227.5" cy="227.5" r="227.5" fill="url(#errorGrad)"/>
+              <path d="M311.544 111.179C319.177 103.195 331.838 102.911 339.821 110.544C347.805 118.177 348.089 130.838 340.456 138.821L255.67 227.5L340.456 316.179C348.089 324.163 347.805 336.823 339.821 344.456C331.838 352.089 319.177 351.805 311.544 343.821L228 256.441L144.456 343.821C136.823 351.805 124.163 352.089 116.179 344.456C108.195 336.823 107.911 324.163 115.544 316.179L200.329 227.5L115.544 138.821C107.911 130.838 108.195 118.177 116.179 110.544C124.163 102.911 136.823 103.195 144.456 111.179L228 198.559L311.544 111.179Z" fill="white"/>
+              <defs>
+                <linearGradient id="errorGrad" x1="0" y1="34.2872" x2="455" y2="455" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FF8082"/>
+                  <stop offset="1" stop-color="#CA0003"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      <div class="start-note">Можно вставить URL даже с /mobile - приложение возьмет только домен.</div>
+
+      <button id="continueBtn" class="start-continue" type="button" disabled>
+        <svg viewBox="0 0 455 455" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="227.5" cy="227.5" r="227.5" fill="url(#continueGrad)"/>
+          <path d="M253.233 136L324 228M324 228L253.233 320M324 228L131 228" stroke="white" stroke-width="53" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="continueGrad" x1="0" y1="34.2872" x2="455" y2="455" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#80ABFF"/>
+              <stop offset="1" stop-color="#684CFF"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </button>
+    </div>
+
+    <div id="screenChat" class="screen">
+      <div id="helperWrap">
+        <div class="helper">Чем могу помочь?</div>
+        <div class="cards">
+          <div class="card" data-prompt="Какую модель ты сейчас используешь?">Какую модель ты сейчас используешь?</div>
+          <div class="card" data-prompt="Какие провайдеры доступны?">Какие провайдеры доступны?</div>
+          <div class="card" data-prompt="Сделай список идей для проекта.">Сделай список идей для проекта.</div>
+          <div class="card" data-prompt="Объясни сложную тему простыми словами.">Объясни сложную тему простыми словами.</div>
+        </div>
+      </div>
+      <div id="chatList" class="chat-list"></div>
+	  <button id="scrollDownBtn" class="scroll-down-btn" type="button" aria-label="К последнему сообщению">
+		<svg viewBox="0 0 24 24">
+			<path d="M6 9l6 6 6-6"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="3"
+				stroke-linecap="round"
+				stroke-linejoin="round"/>
+		</svg>
+		</button>
+
+    </div>
+
+    <div id="screenSettings" class="screen">
+      <div class="h1" style="margin-top:8px;">Настройки</div>
+
+      <div class="group">
+        <div class="label">CloudPub URL</div>
+        <input id="settingsBaseUrl" class="input" placeholder="https://xxxxx.cloudpub.ru" />
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <button id="testConnBtn" class="small-btn" style="flex:1;" type="button">Проверить</button>
+          <span id="connBadge" class="badge">не проверено</span>
+        </div>
+      </div>
+
+      <hr class="sep"/>
+
+      <div class="group">
+        <div class="label">Провайдер LLM</div>
+        <div class="tabs" id="providerTabs">
+          <button class="tab" data-provider="ollama" type="button">Ollama</button>
+          <button class="tab" data-provider="gigachat" type="button">GigaChat</button>
+        </div>
+      </div>
+
+      <!-- Ollama: shared model list, choose target (chat vs file analysis) -->
+      <div id="ollamaBlock" class="group">
+        <div class="label">Ollama</div>
+
+        <div class="tabs" id="ollamaTargetTabs" style="margin-bottom:8px;">
+          <button class="tab active" data-target="chat" type="button">Чат</button>
+          <button class="tab" data-target="analysis" type="button">Анализ файлов</button>
+        </div>
+
+        <div id="ollamaChatModelWrap">
+          <div class="label">Модель для чата</div>
+          <input id="ollamaModelInput" class="input" placeholder="например: qwen3:8b" />
+        </div>
+
+        <div id="ollamaAnalysisModelWrap" style="display:none;">
+          <div class="label">Модель для анализа файлов</div>
+          <input id="ollamaAnalysisModelInput" class="input" placeholder="например: llava" />
+          <div class="note">Используется кнопкой «скрепка».</div>
+        </div>
+
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button id="loadModelsBtn" class="small-btn" style="flex:1;" type="button">Загрузить модели</button>
+          <button id="applyModelBtn" class="small-btn" style="flex:1;" type="button">Применить</button>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div class="label">Установленные модели (клик - подставить)</div>
+          <div id="modelsBox" class="models-box">Нажми «Загрузить модели».</div>
+        </div>
+      </div>
+
+      <div id="apiBlock" class="group" style="display:none;">
+        <div class="label">API-ключ</div>
+        <input id="apiKeyInput" class="input" placeholder="вставь ключ (для выбранного провайдера)" autocomplete="off" />
+
+        <div class="label" style="margin-top:10px;">Модель</div>
+        <div class="grid2">
+          <input id="gigachatModelInput" class="input" placeholder="GigaChat" />
+        </div>
+      </div>
+
+      <button id="saveSettingsBtn" class="btn" style="margin-top:18px;" type="button">Сохранить настройки</button>
+      <button id="backToChatBtn" class="btn2" type="button">Назад в чат</button>
+    </div>
+
+    <div id="bottomBar" class="bottom" style="display:none;">
+      <!-- Small round image-gen button ABOVE compose, on the left -->
+      <div class="above-compose">
+        <button id="genImgBtn" class="above-round-btn" title="Генерация изображения" aria-label="Генерация изображения" type="button">
+          <svg width="38" height="37" viewBox="0 0 38 37" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M33.256 6.7589C35.7721 6.75908 37.8387 8.82575 37.839 11.3419V32.1759C37.8388 34.6921 35.7722 36.7587 33.256 36.7589H12.422C9.90583 36.7586 7.83915 34.6921 7.83898 32.1759V18.753C8.03339 19.1487 8.22461 19.5615 8.41222 19.9933C8.75755 20.7882 9.88922 20.855 10.339 20.1476V32.1759C10.339 32.2862 10.3553 32.3928 10.3712 32.4982L20.4952 22.7042C21.144 22.0766 21.9912 21.7638 22.839 21.7638C23.6868 21.7638 24.5359 22.0765 25.1847 22.7042L35.3067 32.4982C35.3227 32.3928 35.3389 32.2863 35.339 32.1759V11.3419C35.3387 10.177 34.4209 9.25908 33.256 9.2589H21.0362C20.9885 8.93518 20.8031 8.63156 20.4718 8.46398C19.3751 7.90929 18.394 7.34923 17.5069 6.7589H33.256ZM22.8409 24.2491C22.6247 24.2492 22.4071 24.3332 22.2335 24.5011L12.172 34.2345C12.2547 34.2442 12.3363 34.2589 12.422 34.2589H33.256C33.3416 34.2589 33.4233 34.2442 33.506 34.2345L23.4464 24.5011C23.2728 24.3332 23.0571 24.2492 22.8409 24.2491ZM28.256 12.5919C29.4014 12.592 30.4188 13.0669 31.0646 13.7931C31.7102 14.5194 32.0059 15.4393 32.006 16.3419C32.006 17.2447 31.7103 18.1643 31.0646 18.8907C30.4189 19.6171 29.4017 20.0918 28.256 20.0919C27.1102 20.0919 26.0921 19.6172 25.4464 18.8907C24.8008 18.1643 24.506 17.2446 24.506 16.3419C24.5061 15.4393 24.8007 14.5194 25.4464 13.7931C26.0921 13.0667 27.1103 12.592 28.256 12.5919ZM8.84972 0.598748C9.26352 -0.21995 10.5185 -0.193106 10.8966 0.642693C12.6613 4.54373 14.8105 6.64675 18.6495 8.63976C19.4514 9.05617 19.4023 10.2721 18.5743 10.6339C14.7884 12.2884 12.5742 14.3396 10.4737 18.4347C10.0608 19.2395 8.83918 19.201 8.46788 18.3761C6.60977 14.2478 4.39151 12.1817 0.577257 10.2296C-0.212678 9.82535 -0.186028 8.64668 0.621202 8.27844C4.65655 6.43924 6.91751 4.42169 8.84972 0.598748ZM28.256 15.0919C27.7353 15.0919 27.5021 15.2422 27.3146 15.4532C27.1271 15.6642 27.0061 15.9949 27.006 16.3419C27.006 16.6889 27.1272 17.0195 27.3146 17.2306C27.5021 17.4416 27.7352 17.5919 28.256 17.5919C28.7766 17.5918 29.0089 17.4416 29.1964 17.2306C29.3839 17.0196 29.506 16.689 29.506 16.3419C29.5059 15.9949 29.3839 15.6642 29.1964 15.4532C29.0089 15.2424 28.7763 15.092 28.256 15.0919Z" fill="url(#paint0_linear_54_30)"/>
+            <defs>
+              <linearGradient id="paint0_linear_54_30" x1="6.74798" y1="7.26773" x2="17.0963" y2="15.1064" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#9ACAFF"/>
+                <stop offset="1" stop-color="#7687FF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </button>
+		<!-- attachment chip (shows selected file) -->
+		  <div id="attachChip" class="attach-chip" style="display:none;">
+			<div id="attachName" class="attach-chip-name"></div>
+			<button id="attachClearBtn" class="attach-clear-btn" title="Убрать файл" aria-label="Убрать файл" type="button">Г—</button>
+		  </div>
+	  </div>
+
+      <div id="compose" class="compose state-normal">
+        <button id="attachBtn" class="imgmode-btn" title="Прикрепить фото" aria-label="Прикрепить фото" type="button">
+          <svg viewBox="0 0 37 78" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M34 20.2492C34.3144 36.26 34 45.25 34 61.2492C34 79.25 2.5 79.2494 2.5 61.2492V12.2492C2.5 -0.749512 23.5 -0.749961 23.5 12.2492V52.2492C23.5 57.25 13 57.25 13 52.2492V20.2492" stroke="#7C9CFF" stroke-width="5"/>
+          </svg>
+        </button>
+		
+
+
+        <input
+			id="fileInput"
+			type="file"
+			accept="image/*,.pdf,.txt"
+		/>
+
+
+        <textarea id="messageInput" rows="1" placeholder="Введите ваш текст"></textarea>
+        <button id="stopBtn" class="stop-btn" type="button" title="Остановить ответ" aria-label="Остановить ответ">
+          <svg viewBox="0 0 71 89" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M19 0C21.7614 0 24 2.23858 24 5V84C24 86.7614 21.7614 89 19 89H5C2.23858 89 7.24812e-08 86.7614 0 84V5C0 2.23858 2.23858 0 5 0H19ZM66 0C68.7614 0 71 2.23858 71 5V84C71 86.7614 68.7614 89 66 89H52C49.2386 89 47 86.7614 47 84V5C47 2.23858 49.2386 0 52 0H66Z" fill="currentColor"/>
+          </svg>
+        </button>
+		<!-- model chip -->
+		<button id="modelChip" class="model-chip" type="button">
+		  <svg viewBox="0 0 52 52" class="chip-icon" aria-hidden="true">
+			<path d="M23.0324 1.8994C24.0312 -0.633039 27.6153 -0.633045 28.614 1.89939L34.1133 15.843C34.4183 16.6162 35.0303 17.2282 35.8034 17.5332L49.7471 23.0324C52.2795 24.0312 52.2795 27.6153 49.7471 28.614L35.8034 34.1133C35.0303 34.4183 34.4183 35.0303 34.1133 35.8034L28.614 49.7471C27.6153 52.2795 24.0312 52.2795 23.0324 49.7471L17.5332 35.8034C17.2282 35.0303 16.6162 34.4183 15.843 34.1133L1.8994 28.614C-0.633039 27.6153 -0.633045 24.0312 1.89939 23.0324L15.843 17.5332C16.6162 17.2282 17.2282 16.6162 17.5332 15.843L23.0324 1.8994Z" fill="url(#modelChipGrad)"/>
+			<defs>
+			  <linearGradient id="modelChipGrad" x1="15.3232" y1="15.8232" x2="33.8232" y2="34.3232" gradientUnits="userSpaceOnUse">
+				<stop stop-color="#A6D0FF"/>
+				<stop offset="1" stop-color="#819BFF"/>
+			  </linearGradient>
+			</defs>
+		  </svg>
+		  <span id="modelChipText">gpt-oss</span>
+		</button>
+
+		<!-- popup -->
+		<div id="modelPopup" class="model-popup"></div>
+
+        <button id="sendBtn" class="badge-btn" title="Отправить" type="button">
+          <svg id="iconStar" class="icon-show" viewBox="0 0 53.6807 53.6807" aria-hidden="true">
+			<path d="M26.8404 0C28.963 1.3062e-05 30.9128 2.21428 32.4473 5.91419C35.6263 3.47719 38.4223 2.53463 40.2606 3.59594C42.0988 4.65724 42.6804 7.54975 42.1595 11.5211C46.1309 11.0002 49.0234 11.582 50.0847 13.4201C51.1461 15.2583 50.2033 18.0542 47.7663 21.2332C51.4663 22.7677 53.6807 24.7177 53.6807 26.8403C53.6807 28.9629 51.4663 30.9128 47.7663 32.4473C50.2034 35.6263 51.1461 38.4223 50.0847 40.2606C49.0234 42.0988 46.1308 42.6805 42.1594 42.1595C42.6804 46.1309 42.0987 49.0235 40.2605 50.0848C38.4223 51.1461 35.6263 50.2035 32.4473 47.7665C30.9128 51.4664 28.963 53.6807 26.8404 53.6807C24.7177 53.6807 22.7679 51.4664 21.2333 47.7664C18.0543 50.2034 15.2584 51.1461 13.4202 50.0847C11.582 49.0234 11.0003 46.1309 11.5212 42.1594C7.54976 42.6804 4.65723 42.0987 3.59594 40.2605C2.53463 38.4223 3.47719 35.6263 5.91419 32.4473C2.21424 30.9128 5.47839e-08 28.9629 0 26.8403C1.34795e-05 24.7177 2.21417 22.7677 5.91404 21.2332C3.4771 18.0543 2.53457 15.2584 3.59586 13.4202C4.65716 11.582 7.54971 11.0003 11.5211 11.5212C11.0002 7.54978 11.5819 4.65723 13.4201 3.59594C15.2583 2.53465 18.0543 3.47721 21.2332 5.91419C22.7678 2.21424 24.7177 1.22316e-05 26.8404 0Z" fill="white"/>
+          </svg>
+          <svg id="iconArrow" class="icon-hide" viewBox="0 0 49 53" aria-hidden="true">
+            <path d="M4.50021 21.0794L24.5002 5.67944M24.5002 5.67944L44.5002 21.0794M24.5002 5.67944V47.6794" stroke="white" stroke-width="9" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div><!-- /mainwrap -->
+</div>
+
+<script>
+const LS = {
+  base: "jarvisa_base_url",
+  provider: "jarvisa_provider",
+  chats: "jarvisa_chats_v1",
+  current: "jarvisa_current_chat_v1",
+  lastModels: "jarvisa_last_models_v1"
+};
+
+const ICONS = {
+  copy: `<svg width="214" height="213" viewBox="0 0 214 213" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M194 40.5C205.046 40.5 214 49.4543 214 60.5V192.5C214 203.546 205.046 212.5 194 212.5H62L61.4834 212.493C50.6765 212.219 42 203.373 42 192.5V60.5C42 49.627 50.6765 40.7808 61.4834 40.5068L62 40.5H194ZM62 192.5H194V60.5H62V192.5ZM170 0C175.523 0 180 4.47715 180 10C180 15.5228 175.523 20 170 20H25C22.2386 20 20 22.2386 20 25V169C20 174.523 15.5228 179 10 179C4.47715 179 0 174.523 0 169V25C0 11.1929 11.1929 0 25 0H170Z" fill="url(#paint0_linear_36_18)"/><defs><linearGradient id="paint0_linear_36_18" x1="-2.5" y1="-2.5" x2="213.5" y2="212.5" gradientUnits="userSpaceOnUse"><stop stop-color="#93A4FF"/><stop offset="1" stop-color="#9575FF"/></linearGradient></defs></svg>`,
+  share: `<svg width="206" height="206" viewBox="0 0 206 206" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M171.667 0C162.561 0 153.828 3.61725 147.389 10.056C140.951 16.4947 137.333 25.2276 137.333 34.3333C137.349 36.7467 137.618 39.1517 138.138 41.5085L60.1839 80.4855C56.9688 76.784 52.9981 73.8139 48.5391 71.7753C44.0802 69.7366 39.2362 68.6767 34.3333 68.6667C25.2276 68.6667 16.4947 72.2839 10.056 78.7227C3.61725 85.1614 0 93.8942 0 103C0 112.106 3.61725 120.839 10.056 127.277C16.4947 133.716 25.2276 137.333 34.3333 137.333C39.2378 137.328 44.0841 136.272 48.5461 134.236C53.0081 132.2 56.9821 129.232 60.2007 125.531L138.104 164.492C137.596 166.85 137.338 169.254 137.333 171.667C137.333 180.772 140.951 189.505 147.389 195.944C153.828 202.383 162.561 206 171.667 206C180.772 206 189.505 202.383 195.944 195.944C202.383 189.505 206 180.772 206 171.667C206 162.561 202.383 153.828 195.944 147.389C189.505 140.951 180.772 137.333 171.667 137.333C166.762 137.339 161.916 138.395 157.454 140.431C152.992 142.467 149.018 145.435 145.799 149.135L67.8955 110.175C68.4039 107.817 68.6624 105.412 68.6667 103C68.6502 100.592 68.3805 98.1929 67.862 95.8416L145.816 56.8646C149.033 60.5631 153.004 63.53 157.463 65.5657C161.922 67.6014 166.765 68.6587 171.667 68.6667C180.772 68.6667 189.505 65.0494 195.944 58.6107C202.383 52.1719 206 43.4391 206 34.3333C206 25.2276 202.383 16.4947 195.944 10.056C189.505 3.61725 180.772 0 171.667 0Z" fill="url(#paint0_linear_36_20)"/><defs><linearGradient id="paint0_linear_36_20" x1="0" y1="0" x2="206" y2="206" gradientUnits="userSpaceOnUse"><stop stop-color="#93A2FF"/><stop offset="1" stop-color="#9577FF"/></linearGradient></defs></svg>`,
+  regen: `<svg width="232" height="250" viewBox="0 0 232 250" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M214.018 112C220.645 112 226.018 117.373 226.018 124V190.33C226.017 199.719 218.406 207.33 209.018 207.33H45.6396L67.5176 229.588C72.1633 234.314 72.0975 241.912 67.3711 246.558C62.6447 251.203 55.0471 251.138 50.4014 246.412L8.45996 203.741L0 195.135L8.6543 186.724L50.5967 145.964C55.3495 141.345 62.9467 141.454 67.5654 146.207C72.1839 150.96 72.0749 158.557 67.3223 163.176L46.584 183.33H202.018V124C202.018 117.373 207.39 112 214.018 112ZM163.664 3.44238C168.391 -1.20338 175.988 -1.13854 180.634 3.58789L222.575 46.2588L231.035 54.8652L222.381 63.2764L180.438 104.036C175.686 108.655 168.088 108.546 163.47 103.793C158.851 99.0402 158.96 91.443 163.713 86.8242L184.451 66.6699H29.0176V126C29.0175 132.627 23.645 138 17.0176 138C10.3902 138 5.01764 132.627 5.01758 126V59.6699C5.01783 50.2813 12.6289 42.6699 22.0176 42.6699H185.396L163.518 20.4121C158.872 15.6857 158.938 8.08816 163.664 3.44238Z" fill="url(#paint0_linear_37_13)"/><defs><linearGradient id="paint0_linear_37_13" x1="0.017575" y1="0.500002" x2="231.018" y2="249.5" gradientUnits="userSpaceOnUse"><stop stop-color="#93A2FF"/><stop offset="1" stop-color="#9577FF"/></linearGradient></defs></svg>`,
+  ok: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" fill="none" stroke="#20b26b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  deleteChat: `<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25.2918 0.807615C26.3688 -0.269297 28.1152 -0.269093 29.1922 0.807615C30.2693 1.88463 30.2693 3.63099 29.1922 4.70801L18.9002 14.999L29.1932 25.293C30.2699 26.3699 30.2698 28.1154 29.1932 29.1924C28.1162 30.2694 26.3698 30.2694 25.2928 29.1924L14.9999 18.8994L4.70786 29.1924C3.63085 30.2694 1.88449 30.2694 0.807473 29.1924C-0.269145 28.1154 -0.26917 26.3699 0.807473 25.293L11.0995 14.999L0.808449 4.70801C-0.268564 3.63099 -0.268564 1.88463 0.808449 0.807615C1.88549 -0.269108 3.63192 -0.269302 4.70884 0.807615L14.9999 11.0986L25.2918 0.807615Z" fill="#CACFFF"/></svg>`
+};
+
+function nowTs(){ return Date.now(); }
+function safeJsonParse(s, fallback){
+  try {
+    const parsed = JSON.parse(s);
+    return (parsed === null || parsed === undefined) ? fallback : parsed;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeBaseUrl(raw){
+  let s = (raw || "").trim();
+  if (!s) return "";
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  try{
+    const u = new URL(s);
+    if (u.hostname && u.hostname.endsWith(".cloudpub.ru") && u.protocol !== "https:") {
+      u.protocol = "https:";
+    }
+    return u.origin;
+  }catch{
+    s = s.replace(/\/+$/,"");
+    const m = s.match(/^(https?:\/\/[^\/]+).*$/i);
+    return m ? m[1] : s;
+  }
+}
+
+
+
+function isDesktopLayout(){
+  return window.matchMedia("(min-width: 900px)").matches;
+}
+
+async function fetchJson(
+  path,
+  { method = "GET", body = null, timeoutMs = 15000 } = {}
+){
+  if (!state.apiBase) {
+    throw new Error("Не задан CloudPub URL");
+  }
+
+  const url = state.apiBase + path;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : null,
+      signal: ctrl.signal
+    });
+
+    const contentType = res.headers.get("content-type") || "";
+
+    // вќЊ HTML = РѕС€РёР±РєР° СЃРµСЂРІРµСЂР°
+    if (contentType.includes("text/html")) {
+      const html = await res.text();
+      throw new Error("Сервер временно недоступен");
+    }
+
+    // вќЊ РќР• JSON = РѕС€РёР±РєР°
+    if (!contentType.includes("application/json")) {
+      const txt = await res.text();
+      throw new Error("Некорректный ответ сервера");
+    }
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg =
+        data?.message ||
+        data?.error ||
+        ("HTTP " + res.status);
+      throw new Error(msg);
+    }
+
+    return data;
+
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("Превышено время ожидания ответа");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchTextStream(
+  path,
+  {
+    method = "POST",
+    body = null,
+    timeoutMs = 60000,
+    signal
+  } = {}
+){
+  if (!state.apiBase) {
+    throw new Error("Не задан CloudPub URL");
+  }
+
+  const url = state.apiBase + path;
+
+  let timeoutId = null;
+
+  // С‚Р°Р№РјР°СѓС‚ (РµСЃР»Рё Р·Р°РґР°РЅ)
+  if (timeoutMs > 0) {
+    timeoutId = setTimeout(() => {
+      try {
+        signal?.abort();
+      } catch {}
+    }, timeoutMs);
+  }
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: body ? JSON.stringify(body) : null,
+      signal
+    });
+
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(txt || ("HTTP " + res.status));
+    }
+
+    if (!res.body) {
+      throw new Error("Streaming не поддерживается браузером");
+    }
+
+    // Р’РђР–РќРћ: РІРѕР·РІСЂР°С‰Р°РµРј reader, С‡С‚РѕР±С‹ СЃС‚СЂРёРј С‡РёС‚Р°Р»СЃСЏ РІСЂСѓС‡РЅСѓСЋ
+    return res.body.getReader();
+
+  } catch (err) {
+    // abort вЂ” СЌС‚Рѕ РќРћР РњРђР›Р¬РќРђРЇ СЃРёС‚СѓР°С†РёСЏ
+    if (err.name === "AbortError") {
+      throw err;
+    }
+    throw err;
+
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
+
+async function postForm(path, formData, {timeoutMs=120000} = {}){
+  if (!state.apiBase) throw new Error("Не задан CloudPub URL");
+  const url = state.apiBase + path;
+
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+
+  try{
+    const res = await fetch(url, { method:"POST", body: formData, signal: ctrl.signal });
+
+    const txt = await res.text();
+    let data = {};
+    try { data = txt ? JSON.parse(txt) : {}; } catch { data = {raw: txt}; }
+
+    if (!res.ok){
+      const msg = data && (data.message || data.error) ? (data.message || data.error) : (txt || ("HTTP " + res.status));
+      throw new Error(msg);
+    }
+    return data;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+const state = {
+  apiBase: normalizeBaseUrl(localStorage.getItem(LS.base) || ""),
+  provider: localStorage.getItem(LS.provider) || "ollama",
+  chats: safeJsonParse(localStorage.getItem(LS.chats), []),
+  currentChatId: localStorage.getItem(LS.current) || "",
+  models: safeJsonParse(localStorage.getItem(LS.lastModels), []),
+  startVerifiedBase: "",
+  startStatus: "idle",
+
+  pendingFile: null,
+  ollamaTarget: "chat",
+
+  imageMode: false
+};
+
+function ensureChatsArray(){
+  if (!Array.isArray(state.chats)) state.chats = [];
+}
+
+
+const el = {
+  drawerOverlay: document.getElementById("drawerOverlay"),
+  drawer: document.getElementById("drawer"),
+  drawerItems: document.getElementById("drawerItems"),
+  menuBtn: document.getElementById("menuBtn"),
+  closeDrawerBtn: document.getElementById("closeDrawerBtn"),
+  newChatBtn: document.getElementById("newChatBtn"),
+
+  settingsBtn: document.getElementById("settingsBtn"),
+  topTitle: document.getElementById("topTitle"),
+  topSub: document.getElementById("topSub"),
+
+  screenStart: document.getElementById("screenStart"),
+  screenChat: document.getElementById("screenChat"),
+  screenSettings: document.getElementById("screenSettings"),
+  bottomBar: document.getElementById("bottomBar"),
+
+  baseUrlInput: document.getElementById("baseUrlInput"),
+  startCheckBtn: document.getElementById("startCheckBtn"),
+  startStatusText: document.getElementById("startStatusText"),
+  continueBtn: document.getElementById("continueBtn"),
+  clearSavedBtn: document.getElementById("clearSavedBtn"),
+
+  chatList: document.getElementById("chatList"),
+  helperWrap: document.getElementById("helperWrap"),
+
+  compose: document.getElementById("compose"),
+  messageInput: document.getElementById("messageInput"),
+  sendBtn: document.getElementById("sendBtn"),
+  iconStar: document.getElementById("iconStar"),
+  iconArrow: document.getElementById("iconArrow"),
+
+  attachBtn: document.getElementById("attachBtn"),
+  fileInput: document.getElementById("fileInput"),
+  attachChip: document.getElementById("attachChip"),
+  attachName: document.getElementById("attachName"),
+  attachClearBtn: document.getElementById("attachClearBtn"),
+
+  genImgBtn: document.getElementById("genImgBtn"),
+
+  settingsBaseUrl: document.getElementById("settingsBaseUrl"),
+  testConnBtn: document.getElementById("testConnBtn"),
+  connBadge: document.getElementById("connBadge"),
+
+  providerTabs: document.getElementById("providerTabs"),
+  ollamaBlock: document.getElementById("ollamaBlock"),
+  apiBlock: document.getElementById("apiBlock"),
+
+  ollamaTargetTabs: document.getElementById("ollamaTargetTabs"),
+  ollamaChatModelWrap: document.getElementById("ollamaChatModelWrap"),
+  ollamaAnalysisModelWrap: document.getElementById("ollamaAnalysisModelWrap"),
+  ollamaAnalysisModelInput: document.getElementById("ollamaAnalysisModelInput"),
+
+  ollamaModelInput: document.getElementById("ollamaModelInput"),
+  loadModelsBtn: document.getElementById("loadModelsBtn"),
+  applyModelBtn: document.getElementById("applyModelBtn"),
+  modelsBox: document.getElementById("modelsBox"),
+  modelChip: document.getElementById("modelChip"),
+  modelChipText: document.getElementById("modelChipText"),
+  modelPopup: document.getElementById("modelPopup"),
+  stopBtn: document.getElementById("stopBtn"),
+  apiKeyInput: document.getElementById("apiKeyInput"),
+  gigachatModelInput: document.getElementById("gigachatModelInput"),
+
+  saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+  backToChatBtn: document.getElementById("backToChatBtn")
+  
+};
+el.scrollDownBtn = document.getElementById("scrollDownBtn");
+
+let typingNode = null;
+let stopTimer = null;
+let streamAbortCtrl = null;
+let keepChatAtBottom = true;
+
+
+
+
+
+/* ===== UI helpers ===== */
+function positionScrollDownBtn(){
+  const bar = el.bottomBar;
+  const btn = el.scrollDownBtn;
+  if (!bar || !btn) return;
+
+  const r = bar.getBoundingClientRect();
+  const btnH = btn.offsetHeight || 36;
+
+  const centerX = r.left + r.width / 2;
+
+  // РІСЃРµРіРґР° РЅР°Рґ РІСЃРµР№ РЅРёР¶РЅРµР№ РїР°РЅРµР»СЊСЋ, Р±РµР· РґС‘СЂРіР°РЅРёР№
+  const y = r.top - btnH - 8;
+
+  btn.style.left = `${centerX}px`;
+  btn.style.top  = `${y}px`;
+}
+
+
+function isAtBottom(s){
+  if (!s) return true;
+  const maxTop = s.scrollHeight - s.clientHeight;
+  if (maxTop <= 0) return true;
+  return s.scrollTop >= maxTop - 64; // в¬…пёЏ РґРѕРїСѓСЃРє
+}
+
+function getChatScroller(){
+  if (!el.chatList) return document.scrollingElement || null;
+  const list = el.chatList;
+  if (list.scrollHeight > list.clientHeight + 2) return list;
+  return document.scrollingElement || list;
+}
+
+function updateScrollDownBtn(){
+  const btn = el.scrollDownBtn;
+  const list = el.chatList;
+  if (!btn || !list) return;
+
+  const chatActive = el.screenChat.classList.contains("active");
+  const drawerOpen = !isDesktopLayout() && el.drawer.classList.contains("open");
+  if (!chatActive || drawerOpen){
+    btn.classList.remove("show");
+    return;
+  }
+
+  const scroller = getChatScroller();
+  btn.classList.toggle("show", !isAtBottom(scroller));
+}
+
+const MESSAGE_INPUT_MAX_LINES = 4;
+function autoResizeMessageInput(){
+  if (!el.messageInput) return;
+  const input = el.messageInput;
+  const compose = el.compose;
+  const cs = window.getComputedStyle(input);
+  let lineHeight = parseFloat(cs.lineHeight);
+  if (!Number.isFinite(lineHeight) || lineHeight <= 0) lineHeight = 22;
+  const maxHeight = Math.round(lineHeight * MESSAGE_INPUT_MAX_LINES);
+  input.style.maxHeight = maxHeight + "px";
+
+  input.style.height = "0px";
+  const full = input.scrollHeight || 24;
+  const next = Math.min(full, maxHeight);
+
+  input.style.height = Math.max(24, next) + "px";
+  input.style.overflowY = full > maxHeight ? "auto" : "hidden";
+  if (compose) compose.classList.toggle("is-multiline", full > lineHeight * 1.5);
+
+  positionScrollDownBtn();
+}
+
+
+
+function toggleImageMode(){
+  state.imageMode = !state.imageMode;
+
+  el.genImgBtn.classList.toggle("active", state.imageMode);
+
+  if (state.imageMode){
+    clearPendingFile();
+    el.messageInput.placeholder = "Опиши, что нужно нарисовать";
+    autoResizeMessageInput();
+
+    el.modelChip.style.display = "none"; // в¬…пёЏ FIX
+  } else {
+    el.messageInput.placeholder = "Введите ваш текст";
+    el.modelChip.style.display = "";     // в¬…пёЏ FIX
+    autoResizeMessageInput();
+  }
+
+  el.messageInput.focus();
+  updateSendIcon();
+}
+
+
+function armStopButton(){
+  clearTimeout(stopTimer);
+  stopTimer = setTimeout(() => {
+    el.stopBtn.classList.add("show");
+  }, 500);
+}
+
+
+function disarmStopButton(){
+  clearTimeout(stopTimer);
+  stopTimer = null;
+  el.stopBtn.classList.remove("show");
+}
+
+
+
+
+function openDrawer(){
+  if (isDesktopLayout()) return;
+  el.drawer.classList.add("open");
+  el.drawerOverlay.classList.add("open");
+  el.bottomBar.style.display = "none";
+  updateScrollDownBtn();
+}
+function closeDrawer(){
+  if (isDesktopLayout()) return;
+  el.drawer.classList.remove("open");
+  el.drawerOverlay.classList.remove("open");
+  if (el.screenChat.classList.contains("active")) el.bottomBar.style.display = "block";
+  positionScrollDownBtn();
+  updateScrollDownBtn();
+}
+
+function renderModelPopup(){
+  const models = state.models || [];
+  el.modelPopup.innerHTML = "";
+
+  const current = (el.ollamaModelInput.value || "").trim();
+
+  models.forEach(name => {
+    const div = document.createElement("div");
+    div.className = "model-item" + (name === current ? " active" : "");
+    div.textContent = name;
+
+    div.onclick = async () => {
+      await fetchJson("/select-model", {
+        method:"POST",
+        body:{ model: name }
+      });
+
+      el.ollamaModelInput.value = name;
+      el.modelChipText.textContent = name;
+
+      el.modelPopup.classList.remove("open");
+
+      el.modelChip.classList.add("ok");
+      setTimeout(() => el.modelChip.classList.remove("ok"), 1000);
+    };
+
+    el.modelPopup.appendChild(div);
+  });
+}
+
+
+function setScreen(name){
+  el.screenStart.classList.toggle("active", name === "start");
+  el.screenChat.classList.toggle("active", name === "chat");
+  el.screenSettings.classList.toggle("active", name === "settings");
+  document.body.classList.toggle("start-mode", name === "start");
+
+  el.topTitle.textContent = name === "settings" ? "Настройки" : (name === "chat" ? "Чат" : "J.A.R.V.I.S.A");
+  el.topSub.textContent = state.apiBase ? state.apiBase.replace(/^https?:\/\//i,"") : "";
+
+  const drawerOpen = !isDesktopLayout() && el.drawer.classList.contains("open");
+  el.bottomBar.style.display = (name === "chat" && !drawerOpen) ? "block" : "none";
+  positionScrollDownBtn();
+  updateScrollDownBtn();
+}
+
+function updateSendIcon(){
+  const hasAnything = ((el.messageInput.value || "").trim().length > 0) || !!state.pendingFile;
+  const isThinking = el.compose.classList.contains("state-thinking");
+
+  if (isThinking || !hasAnything){
+    el.iconStar.classList.add("icon-show");
+    el.iconStar.classList.remove("icon-hide");
+    el.iconArrow.classList.add("icon-hide");
+    el.iconArrow.classList.remove("icon-show");
+  } else {
+    el.iconStar.classList.add("icon-hide");
+    el.iconStar.classList.remove("icon-show");
+    el.iconArrow.classList.add("icon-show");
+    el.iconArrow.classList.remove("icon-hide");
+  }
+}
+
+
+function updateComposePlaceholder(){
+  if (el.compose.classList.contains("state-thinking")) return;
+  if (el.compose.classList.contains("state-error")) return;
+
+  if (state.imageMode){
+    el.messageInput.placeholder = "Опиши свой рисунок";
+    return;
+  }
+
+  if (state.pendingFile){
+    const name = state.pendingFile.name ? ` (${state.pendingFile.name})` : "";
+    el.messageInput.placeholder = "Фото прикреплено" + name + " - задай вопрос или нажми отправить";
+  } else {
+    el.messageInput.placeholder = "Введите ваш текст";
+  }
+}
+
+function setComposeState(mode){
+  el.compose.classList.remove("state-normal","state-thinking","state-error");
+  el.compose.classList.add(
+    mode === "thinking" ? "state-thinking"
+    : mode === "error" ? "state-error"
+    : "state-normal"
+  );
+
+  if (mode === "thinking"){
+    el.messageInput.placeholder = "Думаю...";
+    el.sendBtn.disabled = true;
+    el.messageInput.disabled = true;
+    armStopButton();
+  } else {
+    // рџ”Ґ Р’РђР–РќРћ
+    disarmStopButton();
+
+    el.sendBtn.disabled = false;
+    el.messageInput.disabled = false;
+
+    if (mode === "error"){
+      el.messageInput.placeholder = "Произошла ошибка";
+    } else {
+      updateComposePlaceholder();
+    }
+  }
+
+  updateSendIcon();
+}
+
+
+function setAttachActive(on){
+  el.attachBtn.classList.toggle("active", !!on);
+  if (!on){
+    if (el.attachChip) el.attachChip.style.display = "none";
+    if (el.attachName) el.attachName.textContent = "";
+  }
+  updateComposePlaceholder();
+  updateSendIcon();
+}
+
+function shortenName(name, max = 10){
+  if (!name) return "";
+  if (name.length <= max) return name;
+  const ext = name.includes(".") ? "." + name.split(".").pop() : "";
+  return name.slice(0, max) + "..." + ext;
+}
+
+function setPendingFile(file){
+  state.pendingFile = file || null;
+
+  if (state.pendingFile){
+    if (el.attachName)
+      el.attachName.textContent = shortenName(state.pendingFile.name, 10);
+
+    if (el.attachChip) el.attachChip.style.display = "flex";
+    setAttachActive(true);
+  } else {
+    setAttachActive(false);
+  }
+}
+
+
+function clearPendingFile(){
+  state.pendingFile = null;
+  if (el.fileInput) el.fileInput.value = "";
+  setAttachActive(false);
+}
+
+/* ===== Persist ===== */
+function persist(){
+  localStorage.setItem(LS.base, state.apiBase || "");
+  localStorage.setItem(LS.provider, state.provider || "ollama");
+  localStorage.setItem(LS.chats, JSON.stringify(state.chats || []));
+  localStorage.setItem(LS.current, state.currentChatId || "");
+  localStorage.setItem(LS.lastModels, JSON.stringify(state.models || []));
+}
+
+/* ===== Chat storage ===== */
+function ensureChat(){
+  ensureChatsArray();
+  if (state.currentChatId && state.chats.some(c => c.id === state.currentChatId)) return;
+  const id = "chat_" + nowTs();
+  state.currentChatId = id;
+  state.chats.unshift({ id, title: "Обычный чат", createdAt: nowTs(), messages: [] });
+  persist();
+}
+function currentChat(){
+  ensureChatsArray();
+  ensureChat();
+  return state.chats.find(c => c.id === state.currentChatId);
+}
+function setCurrentChat(id){
+  state.currentChatId = id;
+  persist();
+  renderDrawer();
+  renderChat();
+
+  requestAnimationFrame(() => {
+    el.chatList.scrollTop = el.chatList.scrollHeight;
+	updateScrollDownBtn();
+  });
+}
+
+function newChat(){
+  ensureChatsArray();
+  const id = "chat_" + nowTs();
+  state.currentChatId = id;
+  state.chats.unshift({ id, title: "Обычный чат", createdAt: nowTs(), messages: [] });
+  persist();
+  renderDrawer();
+  renderChat();
+}
+function deleteChat(id){
+  ensureChatsArray();
+  const chats = state.chats || [];
+  const idx = chats.findIndex(c => c.id === id);
+  if (idx === -1) return;
+
+  chats.splice(idx, 1);
+
+  if (state.currentChatId === id){
+    if (chats.length) state.currentChatId = chats[0].id;
+    else {
+      const newId = "chat_" + nowTs();
+      state.currentChatId = newId;
+      chats.unshift({ id: newId, title: "Обычный чат", createdAt: nowTs(), messages: [] });
+    }
+  }
+
+  state.chats = chats;
+  persist();
+  renderDrawer();
+  renderChat();
+}
+
+/* ===== Formatting (safe) ===== */
+function escapeHtml(s){
+  return (s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+
+function formatBotTextToHtml(raw){
+  const src = String(raw || "").replace(/\r\n?/g, "\n").trim();
+  if (!src) return "";
+
+  const codeBlocks = [];
+  const tokenized = src.replace(/```([a-zA-Z0-9_+\-.]*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.push({ lang: (lang || "").trim(), code: code.replace(/\n$/, "") }) - 1;
+    return `\n@@CODEBLOCK_${idx}@@\n`;
+  });
+
+  const escaped = escapeHtml(tokenized);
+  const lines = escaped.split("\n");
+  const blocks = [];
+
+  function formatInline(text){
+    let s = text;
+    const inlineCodes = [];
+
+    s = s.replace(/`([^`\n]+)`/g, (_, c) => {
+      const idx = inlineCodes.push(c) - 1;
+      return `@@INLINECODE_${idx}@@`;
+    });
+
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      (_, label, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+
+    s = s.replace(/(\*\*|__)(.+?)\1/g, "<strong>$2</strong>");
+    s = s.replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>");
+    s = s.replace(/(^|[^_])_(?!\s)([^_]+?)_(?!_)/g, "$1<em>$2</em>");
+
+    s = s.replace(/(^|[\s(])(https?:\/\/[^\s<]+)/g,
+      (_, lead, url) => `${lead}<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+
+    s = s.replace(/@@INLINECODE_(\d+)@@/g, (_, n) => `<code>${inlineCodes[Number(n)] || ""}</code>`);
+    return s;
+  }
+
+  function parsePipeRow(line){
+    return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => formatInline(c.trim()));
+  }
+
+  function isBlockStart(t){
+    return /^@@CODEBLOCK_\d+@@$/.test(t)
+      || /^\s{0,3}#{1,6}\s+/.test(t)
+      || /^>\s?/.test(t)
+      || /^\s*[-*]\s+/.test(t)
+      || /^\s*\d+\.\s+/.test(t);
+  }
+
+  let i = 0;
+  while (i < lines.length){
+    const line = lines[i];
+    const t = line.trim();
+    if (!t){ i++; continue; }
+
+    const codeToken = t.match(/^@@CODEBLOCK_(\d+)@@$/);
+    if (codeToken){
+      const idx = Number(codeToken[1]);
+      const block = codeBlocks[idx] || { lang:"", code:"" };
+      const lang = escapeHtml(block.lang || "");
+      const code = escapeHtml(block.code || "");
+      blocks.push(
+        `<div class="code-block">` +
+        `<div class="code-head"><span>${lang || "code"}</span><button class="code-copy-btn" type="button">Копировать</button></div>` +
+        `<pre><code>${code}</code></pre>` +
+        `</div>`
+      );
+      i++;
+      continue;
+    }
+
+    if (/^\s{0,3}#{1,6}\s+/.test(t)){
+      const level = Math.min(6, (t.match(/^#{1,6}/)?.[0].length || 1));
+      const text = t.replace(/^\s{0,3}#{1,6}\s+/, "");
+      blocks.push(`<h${level}>${formatInline(text)}</h${level}>`);
+      i++;
+      continue;
+    }
+
+    if (/^>\s?/.test(t)){
+      const quote = [];
+      while (i < lines.length && /^>\s?/.test(lines[i].trim())){
+        quote.push(formatInline(lines[i].trim().replace(/^>\s?/, "")));
+        i++;
+      }
+      blocks.push(`<blockquote>${quote.join("<br>")}</blockquote>`);
+      continue;
+    }
+
+    if (
+      t.includes("|") &&
+      i + 1 < lines.length &&
+      /^\s*\|?[\-: ]+\|[\-:| ]+\|?\s*$/.test(lines[i + 1].trim())
+    ){
+      const headers = parsePipeRow(lines[i]);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].trim() && lines[i].includes("|")){
+        rows.push(parsePipeRow(lines[i]));
+        i++;
+      }
+      const headHtml = `<tr>${headers.map(h => `<td><strong>${h}</strong></td>`).join("")}</tr>`;
+      const bodyHtml = rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("");
+      blocks.push(`<div class="table-wrap"><table class="tbl">${headHtml}${bodyHtml}</table></div>`);
+      continue;
+    }
+
+    if (/^\s*[-*]\s+/.test(t)){
+      const items = [];
+      while (i < lines.length && /^\s*[-*]\s+/.test(lines[i].trim())){
+        items.push(formatInline(lines[i].trim().replace(/^\s*[-*]\s+/, "")));
+        i++;
+      }
+      blocks.push(`<ul>${items.map(x => `<li>${x}</li>`).join("")}</ul>`);
+      continue;
+    }
+
+    if (/^\s*\d+\.\s+/.test(t)){
+      const items = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i].trim())){
+        items.push(formatInline(lines[i].trim().replace(/^\s*\d+\.\s+/, "")));
+        i++;
+      }
+      blocks.push(`<ol>${items.map(x => `<li>${x}</li>`).join("")}</ol>`);
+      continue;
+    }
+
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !isBlockStart(lines[i].trim())){
+      para.push(formatInline(lines[i].trim()));
+      i++;
+    }
+    blocks.push(`<p>${para.join("<br>")}</p>`);
+  }
+
+  return blocks.join("");
+}
+
+
+
+
+/* ===== Actions ===== */
+function flashButtonIcon(btn, svgHtml, ms=1200){
+  if (!btn) return;
+  const prev = btn.innerHTML;
+  btn.classList.add("ok");
+  btn.innerHTML = svgHtml;
+  window.setTimeout(() => {
+    btn.classList.remove("ok");
+    btn.innerHTML = prev;
+  }, ms);
+}
+
+async function copyToClipboard(text){
+  try{
+    if (navigator.clipboard?.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch{}
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly","");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    return true;
+  }catch{
+    return false;
+  }
+}
+async function pickModelFromCompose(){
+  if (!state.apiBase) return;
+
+  let models = state.models || [];
+  if (!models.length){
+    try{
+      const data = await fetchJson("/list-models");
+      models = data.models || [];
+      state.models = models;
+      persist();
+    }catch{ return; }
+  }
+
+  const current = el.ollamaModelInput.value || "";
+  const choice = prompt(
+    "Выбери модель Ollama:\n\n" + models.join("\n"),
+    current
+  );
+
+  if (!choice) return;
+
+  await fetchJson("/select-model", {
+    method:"POST",
+    body:{ model: choice }
+  });
+
+  el.ollamaModelInput.value = choice;
+
+  el.modelBtn.classList.add("ok");
+  setTimeout(() => el.modelBtn.classList.remove("ok"), 1000);
+}
+
+el.modelChip.addEventListener("click", async (e) => {
+  e.stopPropagation();
+
+  if (!state.models || !state.models.length){
+    try{
+      const data = await fetchJson("/list-models");
+      state.models = data.models || [];
+      persist();
+    }catch{ return; }
+  }
+
+  renderModelPopup();
+  el.modelPopup.classList.toggle("open");
+});
+
+
+
+async function shareText(text, fallbackCopyBtn=null){
+  try{
+    if (navigator.share){
+      await navigator.share({ text });
+      return true;
+    }
+  }catch{
+    return false;
+  }
+
+  const ok = await copyToClipboard(text);
+  if (ok && fallbackCopyBtn) flashButtonIcon(fallbackCopyBtn, ICONS.ok, 1200);
+  if (ok) alert("Скопировано (поделиться не поддерживается).");
+  return ok;
+}
+
+function lastUserPrompt(chat){
+  const msgs = (chat && chat.messages) ? chat.messages : [];
+  for (let i = msgs.length - 1; i >= 0; i--){
+    if (msgs[i].role === "user") return msgs[i].text;
+  }
+  return "";
+}
+
+async function regenerateLastAnswer(){
+  const chat = currentChat();
+  const prompt = lastUserPrompt(chat);
+  if (!prompt) return;
+
+  let lastBotIdx = -1;
+  for (let i = chat.messages.length - 1; i >= 0; i--){
+    if (chat.messages[i].role === "bot"){ lastBotIdx = i; break; }
+  }
+  if (lastBotIdx === -1) return;
+
+  chat.messages[lastBotIdx].text = "Перегенерация...";
+  chat.messages[lastBotIdx].html = "";
+  persist();
+  renderChat();
+
+  setComposeState("thinking");
+  armStopButton();
+  showTyping();
+
+  try{
+    const data = await fetchJson("/send-message", {
+      method:"POST",
+      body:{ message: prompt },
+      timeoutMs: 60000
+    });
+
+    hideTyping();
+    const reply = (data && (data.response || data.error)) ? (data.response || data.error) : "Пустой ответ.";
+    chat.messages[lastBotIdx].text = reply;
+    chat.messages[lastBotIdx].html = formatBotTextToHtml(reply);
+    persist();
+    renderChat();
+	disarmStopButton();
+	streamAbortCtrl = null;
+    setComposeState("normal");
+  }catch(err){
+    hideTyping();
+    chat.messages[lastBotIdx].text = "Произошла ошибка: " + (err?.message || err);
+    chat.messages[lastBotIdx].html = formatBotTextToHtml(chat.messages[lastBotIdx].text);
+    persist();
+    renderChat();
+    setComposeState("error");
+  }
+}
+
+/* ===== Render ===== */
+function renderDrawer(){
+  el.drawerItems.innerHTML = "";
+  const chats = state.chats || [];
+  if (!chats.length){
+    const d = document.createElement("div");
+    d.className = "item";
+    d.textContent = "Пока нет чатов.";
+    el.drawerItems.appendChild(d);
+    return;
+  }
+  chats.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "item" + (c.id === state.currentChatId ? " active" : "");
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = c.title || "Чат";
+
+    const s = document.createElement("div");
+    s.className = "s";
+    const last = (c.messages && c.messages.length) ? c.messages[c.messages.length - 1].text : "без сообщений";
+    s.textContent = last.slice(0, 42) + (last.length > 42 ? "..." : "");
+
+    meta.appendChild(t);
+    meta.appendChild(s);
+    meta.onclick = () => { setCurrentChat(c.id); if (!isDesktopLayout()) closeDrawer(); };
+
+    const x = document.createElement("button");
+    x.className = "xbtn";
+    x.type = "button";
+    x.title = "Удалить чат";
+    x.innerHTML = ICONS.deleteChat;
+    x.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const ok = confirm("Удалить этот чат?");
+      if (!ok) return;
+      deleteChat(c.id);
+    };
+
+    div.appendChild(meta);
+    div.appendChild(x);
+
+    div.onclick = () => { setCurrentChat(c.id); if (!isDesktopLayout()) closeDrawer(); };
+
+    el.drawerItems.appendChild(div);
+  });
+}
+function getCurrentModelName(){
+  return (el.ollamaModelInput.value || "model").trim();
+}
+
+function renderChat(){
+  const list = el.chatList;
+  const prevTop = list.scrollTop;
+  const prevHeight = list.scrollHeight;
+  const stickToBottom = keepChatAtBottom || isAtBottom(list);
+  list.innerHTML = "";
+
+  const chat = currentChat();
+  el.helperWrap.style.display = (chat.messages.length === 0) ? "block" : "none";
+
+  const lastBotIndex = (() => {
+    for (let i = chat.messages.length - 1; i >= 0; i--){
+      if (chat.messages[i].role === "bot") return i;
+    }
+    return -1;
+  })();
+
+  chat.messages.forEach((m, idx) => {
+
+    /* ===== ROW ===== */
+    const row = document.createElement("div");
+    row.className = "row " + (m.role === "user" ? "user" : "bot");
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + (m.role === "user" ? "user" : "bot");
+
+    if (m.html){
+      bubble.innerHTML = m.html;
+    } else if (m.role === "bot"){
+      bubble.innerHTML = formatBotTextToHtml(m.text);
+    } else {
+      bubble.textContent = m.text;
+    }
+
+    row.appendChild(bubble);
+
+    /* ===== BOT ===== */
+    if (m.role === "bot"){
+      const wrap = document.createElement("div");
+
+      const label = document.createElement("div");
+      label.className = "bot-model-label";
+      label.textContent = "Отвечала " + (m.model || getCurrentModelName());
+
+      wrap.appendChild(label);
+      wrap.appendChild(row);
+
+      /* actions */
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const btnCopy = document.createElement("button");
+      btnCopy.className = "action-btn";
+      btnCopy.innerHTML = ICONS.copy;
+      btnCopy.onclick = async () => {
+        const ok = await copyToClipboard(m.text);
+        if (ok) flashButtonIcon(btnCopy, ICONS.ok, 1200);
+      };
+
+      const btnShare = document.createElement("button");
+      btnShare.className = "action-btn";
+      btnShare.innerHTML = ICONS.share;
+      btnShare.onclick = async () => {
+        await shareText(m.text, btnCopy);
+      };
+
+      actions.appendChild(btnCopy);
+      actions.appendChild(btnShare);
+
+      if (idx === lastBotIndex){
+        const btnRegen = document.createElement("button");
+        btnRegen.className = "action-btn";
+        btnRegen.innerHTML = ICONS.regen;
+        btnRegen.onclick = regenerateLastAnswer;
+        actions.appendChild(btnRegen);
+      }
+
+      wrap.appendChild(actions);
+      list.appendChild(wrap);
+
+    } else {
+      /* ===== USER ===== */
+      list.appendChild(row);
+
+    }
+
+  });
+
+  if (typingNode){
+    list.appendChild(typingNode);
+  }
+
+  requestAnimationFrame(() => {
+    if (stickToBottom){
+      list.scrollTop = list.scrollHeight;
+    } else {
+      const nextHeight = list.scrollHeight;
+      const delta = nextHeight - prevHeight;
+      list.scrollTop = Math.max(0, prevTop + delta);
+    }
+    keepChatAtBottom = isAtBottom(list);
+    updateScrollDownBtn();
+  });
+
+
+  if (window.MathJax){
+    MathJax.typesetPromise().catch(() => {});
+  }
+}
+
+function pushMessage(role, text, html=null, modelOverride=null){
+  const chat = currentChat();
+  const msg = {
+    role,
+    text,
+    ts: nowTs(),
+    model: role === "bot" ? (modelOverride || getCurrentModelName()) : undefined
+  };
+  if (html !== null) msg.html = html;
+  else if (role === "bot") msg.html = formatBotTextToHtml(text);
+
+  chat.messages.push(msg);
+
+  if (role === "user"){
+    if (!chat.title || chat.title === "Обычный чат"){
+      chat.title = text.slice(0, 26) + (text.length > 26 ? "..." : "");
+    }
+  }
+
+  keepChatAtBottom = true;
+  persist();
+  renderDrawer();
+  renderChat();
+}
+
+function showTyping(){
+  if (typingNode) return;
+  const row = document.createElement("div");
+  row.className = "row bot";
+  const bubble = document.createElement("div");
+  bubble.className = "typing-bubble";
+  const dots = document.createElement("div");
+  dots.className = "dots";
+  dots.innerHTML = `<div class="dot"></div><div class="dot"></div><div class="dot"></div>`;
+  bubble.appendChild(dots);
+  row.appendChild(bubble);
+  typingNode = row;
+  renderChat();
+}
+function hideTyping(){
+  typingNode = null;
+  renderChat();
+}
+
+/* ===== Settings ===== */
+function setProvider(p){
+  state.provider = p;
+  persist();
+  [...el.providerTabs.querySelectorAll(".tab")].forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.provider === state.provider);
+  });
+
+  const usesApi = (state.provider === "gigachat");
+  el.apiBlock.style.display = usesApi ? "block" : "none";
+  el.ollamaBlock.style.display = (state.provider === "ollama") ? "block" : "none";
+}
+
+function setOllamaTarget(t){
+  state.ollamaTarget = (t === "analysis") ? "analysis" : "chat";
+  [...el.ollamaTargetTabs.querySelectorAll(".tab")].forEach(b => {
+    b.classList.toggle("active", b.dataset.target === state.ollamaTarget);
+  });
+  el.ollamaChatModelWrap.style.display = (state.ollamaTarget === "chat") ? "block" : "none";
+  el.ollamaAnalysisModelWrap.style.display = (state.ollamaTarget === "analysis") ? "block" : "none";
+  if (state.models && state.models.length){
+    const sel = (state.ollamaTarget === "analysis")
+      ? (el.ollamaAnalysisModelInput.value || "").trim()
+      : (el.ollamaModelInput.value || "").trim();
+    renderModels(state.models, sel);
+  }
+}
+
+function renderModels(models, selected){
+  el.modelsBox.innerHTML = "";
+  if (!models || !models.length){
+    el.modelsBox.textContent = "Модели не найдены.";
+    return;
+  }
+  models.forEach(name => {
+    const div = document.createElement("div");
+    div.className = "model" + (name === selected ? " active" : "");
+    div.textContent = name;
+    div.onclick = () => {
+      if (state.ollamaTarget === "analysis"){
+        el.ollamaAnalysisModelInput.value = name;
+        renderModels(models, name);
+      } else {
+        el.ollamaModelInput.value = name;
+        renderModels(models, name);
+      }
+    };
+    el.modelsBox.appendChild(div);
+  });
+}
+
+async function loadModels(){
+  el.modelsBox.textContent = "Загрузка...";
+  try{
+    const data = await fetchJson("/list-models");
+    const models = data.models || [];
+    state.models = models;
+    persist();
+
+    const selected = (state.ollamaTarget === "analysis")
+      ? (el.ollamaAnalysisModelInput.value || "").trim()
+      : (el.ollamaModelInput.value || "").trim();
+
+    renderModels(models, selected);
+  }catch(err){
+    el.modelsBox.textContent = "Ошибка: " + (err?.message || err);
+  }
+}
+
+function cfgPick(cfg, ...keys){
+  for (const k of keys){
+    if (cfg && cfg[k] !== undefined && cfg[k] !== null) return cfg[k];
+  }
+  return undefined;
+}
+
+const startStatusMessages = {
+  idle: "Введи CloudPub URL (туннель до твоего ПК)",
+  checking: "Проверяем ссылку...",
+  success: "Все отлично:)",
+  error: "Что-то пошло не так, проверьте ссылку:("
+};
+
+function setStartStatus(status){
+  if (!el.startCheckBtn || !el.startStatusText || !el.continueBtn) return;
+  const nextStatus = startStatusMessages[status] ? status : "idle";
+  state.startStatus = nextStatus;
+  el.startCheckBtn.dataset.status = nextStatus;
+  el.startStatusText.textContent = startStatusMessages[nextStatus];
+  const currentBase = normalizeBaseUrl(el.baseUrlInput.value);
+  const isVerified = !!currentBase && nextStatus === "success" && currentBase === state.startVerifiedBase;
+  el.continueBtn.disabled = !isVerified;
+}
+
+async function testStartConnection(){
+  const candidateBase = normalizeBaseUrl(el.baseUrlInput.value);
+  if (!candidateBase){
+    state.startVerifiedBase = "";
+    setStartStatus("error");
+    return;
+  }
+
+  const prevBase = state.apiBase;
+  state.apiBase = candidateBase;
+  state.startVerifiedBase = "";
+  setStartStatus("checking");
+
+  try{
+    await fetchJson("/get-config");
+    el.baseUrlInput.value = candidateBase;
+    state.startVerifiedBase = candidateBase;
+    setStartStatus("success");
+  }catch{
+    state.startVerifiedBase = "";
+    setStartStatus("error");
+  } finally {
+    state.apiBase = prevBase;
+  }
+}
+
+async function testConnection(){
+  const candidateBase = normalizeBaseUrl(el.settingsBaseUrl.value);
+  if (!candidateBase){
+    el.connBadge.className = "badge err";
+    el.connBadge.textContent = "ошибка";
+    return;
+  }
+
+  const prevBase = state.apiBase;
+  state.apiBase = candidateBase;
+
+  el.connBadge.className = "badge";
+  el.connBadge.textContent = "проверка...";
+  try{
+    const cfg = await fetchJson("/get-config");
+    el.connBadge.className = "badge ok";
+    el.connBadge.textContent = "OK";
+
+    const prov = cfgPick(cfg, "provider");
+    if (prov) setProvider(prov);
+
+    const selModel = cfgPick(cfg, "selectedmodel", "selected_model", "selected_model_name");
+    if (selModel !== undefined) el.ollamaModelInput.value = selModel || "";
+
+    const analysisModel = cfgPick(cfg, "ollamaanalysismodel");
+    if (analysisModel !== undefined) el.ollamaAnalysisModelInput.value = analysisModel || "";
+
+    const gcModel = cfgPick(cfg, "gigachatmodel", "gigachat_model");
+    if (gcModel !== undefined) el.gigachatModelInput.value = gcModel || "";
+
+    if (state.models && state.models.length){
+      const sel = (state.ollamaTarget === "analysis")
+        ? (el.ollamaAnalysisModelInput.value || "").trim()
+        : (el.ollamaModelInput.value || "").trim();
+      renderModels(state.models, sel);
+    }
+  }catch{
+    el.connBadge.className = "badge err";
+    el.connBadge.textContent = "ошибка";
+  } finally {
+    state.apiBase = prevBase;
+  }
+}
+
+async function saveSettings(){
+  const base = normalizeBaseUrl(el.settingsBaseUrl.value);
+  state.apiBase = base;
+  persist();
+
+  if (!state.apiBase){
+    alert("Укажи CloudPub URL.");
+    return;
+  }
+
+  const gigachatmodel = (el.gigachatModelInput.value || "GigaChat").trim();
+
+  const apiKey = (el.apiKeyInput.value || "").trim();
+  const ollamaModel = (el.ollamaModelInput.value || "").trim();
+  const ollamaAnalysisModel = (el.ollamaAnalysisModelInput.value || "").trim();
+
+  try{
+    await fetchJson("/select-provider", { method:"POST", body:{ provider: state.provider }, timeoutMs: 15000 });
+
+    if (state.provider === "ollama") {
+      if (ollamaModel) await fetchJson("/select-model", { method:"POST", body:{ model: ollamaModel }, timeoutMs: 15000 });
+      if (ollamaAnalysisModel) await fetchJson("/save-keys", { method:"POST", body:{ ollamaanalysismodel: ollamaAnalysisModel }, timeoutMs: 15000 });
+    } else {
+      const payload = { gigachatmodel };
+
+      if (state.provider === "gigachat" && apiKey) payload.gigachatapikey = apiKey;
+
+      await fetchJson("/save-keys", { method:"POST", body: payload, timeoutMs: 15000 });
+      el.apiKeyInput.value = "";
+    }
+
+    alert("Настройки сохранены.");
+    el.topSub.textContent = state.apiBase ? state.apiBase.replace(/^https?:\/\//i,"") : "";
+    setScreen("chat");
+  }catch(err){
+    alert("Ошибка при сохранении настроек: " + (err?.message || err));
+  }
+}
+
+/* ===== Image generation (small round button above input) ===== */
+async function generateImageWithPrompt(prompt){
+  setComposeState("thinking");
+  showTyping();
+
+  try{
+    const data = await fetchJson("/generate-image", {
+      method:"POST",
+      body:{ prompt },
+      timeoutMs: 180000
+    });
+
+    hideTyping();
+
+    const b64 = data?.image_base64 || data?.imagebase64;
+    if (b64){
+      const html = `<img src="data:image/png;base64,${b64}" style="max-width:100%;border-radius:14px;" />`;
+      pushMessage("bot", "[image]", html, "рисовалка");
+    } else {
+      pushMessage("bot", data?.error || "Не удалось сгенерировать изображение.", null, "рисовалка");
+    }
+
+  } catch (err){
+	disarmStopButton();
+	streamAbortCtrl = null;
+    hideTyping();
+    pushMessage("bot", "Ошибка генерации изображения: " + (err?.message || err), null, "рисовалка");
+
+  } finally {
+	disarmStopButton();
+    setComposeState("normal");
+    updateComposePlaceholder();
+    updateSendIcon();
+  }
+}
+
+
+/* ===== Send message (text or file+question) ===== */
+async function sendMessage(){
+  const text = (el.messageInput.value || "").trim();
+  const file = state.pendingFile; // image file (РµСЃР»Рё РІС‹Р±СЂР°РЅ)
+
+  // Р Р°Р·СЂРµС€Р°РµРј: С‚РµРєСЃС‚ РР›Р С„Р°Р№Р»
+  if (!text && !file) return;
+
+  if (!state.apiBase){
+    alert("Сначала введи CloudPub URL.");
+    setScreen("start");
+    return;
+  }
+  
+  // ===== IMAGE MODE =====
+  if (state.imageMode){
+	if (!text){
+    alert("Опиши, что нужно нарисовать.");
+    return;
+  }
+
+  state.imageMode = false;
+  updateComposePlaceholder();
+
+  // Показываем запрос пользователя в чате как и для текстовых моделей
+  pushMessage("user", text);
+  await generateImageWithPrompt(text);
+  return;
+}
+
+
+  // РЎР±СЂР°СЃС‹РІР°РµРј РїРѕР»Рµ РІРІРѕРґР° СЃСЂР°Р·Сѓ (С‡С‚РѕР±С‹ UI Р±С‹Р» Р±С‹СЃС‚СЂС‹Рј)
+  el.messageInput.value = "";
+  autoResizeMessageInput();
+  updateSendIcon();
+
+  // РџСѓС€РёРј СЃРѕРѕР±С‰РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+  if (file){
+    // Р•СЃР»Рё С…РѕС‡РµС€СЊ РїСЂРµРІСЊСЋ РІ СЃРѕРѕР±С‰РµРЅРёРё вЂ” РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ html, РЅРѕ РѕСЃС‚Р°РІР»СЏСЋ РјР°РєСЃРёРјР°Р»СЊРЅРѕ СЃРѕРІРјРµСЃС‚РёРјРѕ:
+    pushMessage("user", text || ("Файл: " + (file.name || "image")));
+  } else {
+    pushMessage("user", text);
+  }
+
+  setComposeState("thinking");
+  armStopButton();
+
+  // РЎРѕР·РґР°С‘Рј РќР• РїСѓСЃС‚РѕР№ placeholder РґР»СЏ РѕС‚РІРµС‚Р° (С‡С‚РѕР±С‹ РЅРµ Р±С‹Р»Рѕ "РїСѓСЃС‚РѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ")
+  const placeholder = file ? "Анализирую файл..." : "...";
+  pushMessage("bot", placeholder);
+  const chat = currentChat();
+  const botIdx = chat.messages.length - 1;
+  let progressTimer = null;
+  let progress = 0;
+
+  function startFileProgress(){
+    progress = 0;
+    progressTimer = setInterval(() => {
+      progress = Math.min(progress + 7, 90);
+      chat.messages[botIdx].text = `Анализ файла: ${progress}%`;
+      chat.messages[botIdx].html = formatBotTextToHtml(chat.messages[botIdx].text);
+      persist();
+      renderChat();
+    }, 1000);
+  }
+
+  function stopFileProgress(){
+    if (progressTimer){
+      clearInterval(progressTimer);
+      progressTimer = null;
+    }
+  }
+
+  try{
+    // ===== 1) Р’РµС‚РєР°: С„Р°Р№Р» (multipart/form-data) -> /analyze-file =====
+    if (file){
+      startFileProgress();
+      const fd = new FormData();
+      fd.append("file", file, file.name || "image.jpg");
+
+      // РљР»СЋС‡РµРІРѕР№ С„РёРєСЃ: message РІСЃРµРіРґР° РЅРµ РїСѓСЃС‚РѕР№
+      fd.append("message", text || "Что на фото?");
+
+      const data = await postForm("/analyze-file", fd, { timeoutMs: 180000 });
+      stopFileProgress();
+      const reply =
+        (data && (data.response || data.error))
+          ? (data.response || data.error)
+          : "Пустой ответ.";
+
+      chat.messages[botIdx].text = reply;
+      chat.messages[botIdx].html = formatBotTextToHtml(reply);
+      persist();
+      renderChat();
+
+      // РѕС‡РёС‰Р°РµРј С„Р°Р№Р»
+      state.pendingFile = null;
+      setAttachActive(false);
+      updateSendIcon();
+
+      setComposeState("normal");
+      return;
+    }
+
+    // ===== 2) Р’РµС‚РєР°: С‚РµРєСЃС‚ =====
+    const wantStream = (state.provider === "ollama");
+
+    // 2a) Р‘РµР· СЃС‚СЂРёРјР°
+    if (!wantStream){
+      const data = await fetchJson("/send-message", {
+        method: "POST",
+        body: { message: text },
+        timeoutMs: 60000
+      });
+
+      const reply =
+        (data && (data.response || data.error))
+          ? (data.response || data.error)
+          : "Пустой ответ.";
+
+      chat.messages[botIdx].text = reply;
+      chat.messages[botIdx].html = formatBotTextToHtml(reply);
+      persist();
+      renderChat();
+
+      setComposeState("normal");
+      return;
+    }
+
+    // 2b) РЎС‚СЂРёРј (Ollama)
+	streamAbortCtrl = new AbortController();
+
+	const reader = await fetchTextStream("/send-message-stream", {
+	  method: "POST",
+	  body: { message: text },
+	  timeoutMs: 120000,
+	  signal: streamAbortCtrl.signal
+	});
+
+
+    const decoder = new TextDecoder("utf-8");
+    let acc = "";
+
+    for (;;){
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      if (!chunk) continue;
+
+      // РїРѕРґРґРµСЂР¶РєР° SSE РІРёРґР° "data: ...."
+      const lines = chunk.split(/\r?\n/);
+      for (const line0 of lines){
+        if (!line0) continue;
+        const line = line0.startsWith("data:") ? line0.slice(5).trimStart() : line0;
+        if (!line) continue;
+
+        acc += line;
+
+        chat.messages[botIdx].text = acc;
+        chat.messages[botIdx].html = formatBotTextToHtml(acc);
+        persist();
+        renderChat();
+      }
+    }
+
+    const tail = decoder.decode();
+    if (tail){
+      acc += tail;
+      chat.messages[botIdx].text = acc;
+      chat.messages[botIdx].html = formatBotTextToHtml(acc);
+      persist();
+      renderChat();
+    }
+
+    setComposeState("normal");
+  } catch (err) {
+    // fallback: РїСЂРѕР±СѓРµРј РѕР±С‹С‡РЅС‹Р№ /send-message (РµСЃР»Рё СЃС‚СЂРёРј РѕС‚РІР°Р»РёР»СЃСЏ)
+    try{
+      const data = await fetchJson("/send-message", {
+        method: "POST",
+        body: { message: text || " " },
+        timeoutMs: 60000
+      });
+
+      const reply =
+        (data && (data.response || data.error))
+          ? (data.response || data.error)
+          : "Пустой ответ.";
+
+      chat.messages[botIdx].text = reply;
+      chat.messages[botIdx].html = formatBotTextToHtml(reply);
+      persist();
+      renderChat();
+
+      setComposeState("normal");
+    } catch (e2) {
+      stopFileProgress();
+      chat.messages[botIdx].text = "Произошла ошибка: " + (e2?.message || e2);
+      chat.messages[botIdx].html = formatBotTextToHtml(chat.messages[botIdx].text);
+      persist();
+      renderChat();
+
+      setComposeState("error");
+    }
+  } finally {
+    stopFileProgress();
+  }
+}
+
+
+/* ===== Attach handlers ===== */
+el.attachBtn.addEventListener("click", () => el.fileInput.click());
+
+el.fileInput.addEventListener("change", () => {
+  const f = el.fileInput.files && el.fileInput.files[0];
+  el.fileInput.value = "";
+  if (!f) return;
+  setPendingFile(f);
+});
+
+el.attachClearBtn.addEventListener("click", () => {
+  clearPendingFile();
+});
+
+
+/* ===== Events ===== */
+el.chatList.addEventListener(
+  "scroll",
+  () => {
+    keepChatAtBottom = isAtBottom(getChatScroller());
+    updateScrollDownBtn();
+  },
+  { passive:true }
+);
+el.chatList.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".code-copy-btn");
+  if (!btn) return;
+
+  const block = btn.closest(".code-block");
+  const codeEl = block?.querySelector("pre code");
+  if (!codeEl) return;
+
+  const ok = await copyToClipboard(codeEl.textContent || "");
+  if (!ok) return;
+
+  const prev = btn.textContent;
+  btn.textContent = "Скопировано";
+  setTimeout(() => { btn.textContent = prev || "Копировать"; }, 1200);
+});
+el.scrollDownBtn.onclick = () => {
+  const s = getChatScroller();
+  if (!s) return;
+
+  s.scrollTo({
+    top: s.scrollHeight,
+    behavior: "smooth"
+  });
+
+  keepChatAtBottom = true;
+  setTimeout(updateScrollDownBtn, 180);
+};
+window.addEventListener(
+  "scroll",
+  () => {
+    keepChatAtBottom = isAtBottom(getChatScroller());
+    updateScrollDownBtn();
+  },
+  { passive:true }
+);
+window.addEventListener("resize", () => {
+  positionScrollDownBtn();
+  updateScrollDownBtn();
+});
+
+
+el.menuBtn.addEventListener("click", () => {
+  if (isDesktopLayout()) return;
+  if (el.drawer.classList.contains("open")) closeDrawer();
+  else openDrawer();
+});
+document.addEventListener("click", () => {
+  el.modelPopup.classList.remove("open");
+});
+el.closeDrawerBtn.addEventListener("click", closeDrawer);
+el.drawerOverlay.addEventListener("click", closeDrawer);
+
+el.newChatBtn.addEventListener("click", () => { newChat(); if (!isDesktopLayout()) closeDrawer(); });
+
+el.settingsBtn.addEventListener("click", () => {
+  el.settingsBaseUrl.value = state.apiBase || "";
+  setProvider(state.provider);
+  setOllamaTarget("chat");
+  setScreen("settings");
+  if (state.apiBase && state.provider === "ollama" && state.models && state.models.length){
+    renderModels(state.models, (el.ollamaModelInput.value || "").trim());
+  }
+});
+el.backToChatBtn.addEventListener("click", () => setScreen("chat"));
+
+el.baseUrlInput.addEventListener("input", () => {
+  const currentBase = normalizeBaseUrl(el.baseUrlInput.value);
+  if (currentBase && currentBase === state.startVerifiedBase){
+    setStartStatus("success");
+    return;
+  }
+  state.startVerifiedBase = "";
+  setStartStatus("idle");
+});
+el.startCheckBtn.addEventListener("click", testStartConnection);
+
+el.continueBtn.addEventListener("click", () => {
+  try{
+    const base = normalizeBaseUrl(el.baseUrlInput.value);
+    if (!base){
+      alert("Укажи CloudPub URL");
+      return;
+    }
+    if (state.startVerifiedBase !== base){
+      alert("Сначала проверь ссылку кнопкой справа.");
+      return;
+    }
+
+    state.apiBase = base;
+    persist();
+
+    el.topSub.textContent = state.apiBase.replace(/^https?:\/\//i,"");
+
+    newChat();
+    renderDrawer();
+    setScreen("chat");
+
+    el.bottomBar.style.display = "block";
+    setComposeState("normal");
+    updateSendIcon();
+
+    requestAnimationFrame(() => {
+      renderChat();
+      el.chatList.scrollTop = el.chatList.scrollHeight;
+      updateScrollDownBtn();
+    });
+  } catch (err){
+    alert("Ошибка перехода в чат: " + (err?.message || err));
+  }
+});
+
+
+el.stopBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!el.stopBtn.classList.contains("show")) return;
+
+  // abort stream
+  if (streamAbortCtrl){
+    streamAbortCtrl.abort();
+    streamAbortCtrl = null;
+  }
+
+  const chat = currentChat();
+  const lastMsg = chat?.messages?.[chat.messages.length - 1];
+  if (lastMsg && (lastMsg.text === "..." || lastMsg.text === "…")) {
+    lastMsg.text = "Ответ остановлен";
+    lastMsg.html = formatBotTextToHtml(lastMsg.text);
+    persist();
+    renderChat();
+  }
+
+  setComposeState("normal");   // РІРЅСѓС‚СЂРё СѓР¶Рµ disarmStopButton()
+});
+
+
+if (el.clearSavedBtn){
+  el.clearSavedBtn.addEventListener("click", () => {
+    localStorage.removeItem(LS.base);
+    state.apiBase = "";
+    el.baseUrlInput.value = "";
+    el.settingsBaseUrl.value = "";
+    el.topSub.textContent = "";
+    setStartStatus("idle");
+    alert("URL сброшен.");
+  });
+}
+
+el.providerTabs.addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  setProvider(btn.dataset.provider);
+});
+
+el.ollamaTargetTabs.addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  setOllamaTarget(btn.dataset.target);
+});
+
+el.testConnBtn.addEventListener("click", testConnection);
+el.saveSettingsBtn.addEventListener("click", saveSettings);
+
+el.loadModelsBtn.addEventListener("click", async () => {
+  if (!state.apiBase){ alert("Сначала укажи CloudPub URL."); return; }
+  await loadModels();
+});
+
+el.applyModelBtn.addEventListener("click", async () => {
+  if (!state.apiBase){ alert("Сначала укажи CloudPub URL."); return; }
+
+  try{
+    if (state.ollamaTarget === "analysis"){
+      const m = (el.ollamaAnalysisModelInput.value || "").trim();
+      if (!m) { alert("Укажи модель для анализа."); return; }
+      await fetchJson("/save-keys", { method:"POST", body:{ ollamaanalysismodel: m }, timeoutMs: 15000 });
+      alert("Модель для анализа сохранена: " + m);
+      if (state.models?.length) renderModels(state.models, m);
+    } else {
+      const m = (el.ollamaModelInput.value || "").trim();
+      if (!m) { alert("Укажи модель чата."); return; }
+      await fetchJson("/select-model", { method:"POST", body:{ model: m }, timeoutMs: 15000 });
+      alert("Модель чата применена: " + m);
+      if (state.models?.length) renderModels(state.models, m);
+    }
+  }catch(err){
+    alert("Ошибка: " + (err?.message || err));
+  }
+});
+
+el.genImgBtn.addEventListener("click", toggleImageMode);
+
+
+el.sendBtn.addEventListener("click", sendMessage);
+
+el.messageInput.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  if (e.isComposing) return;
+
+  if (e.shiftKey){
+    requestAnimationFrame(() => {
+      autoResizeMessageInput();
+      updateSendIcon();
+    });
+    return;
+  }
+
+  if (!e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+el.messageInput.addEventListener("input", () => {
+  autoResizeMessageInput();
+  updateSendIcon();
+});
+el.messageInput.addEventListener("paste", () => {
+  requestAnimationFrame(() => {
+    autoResizeMessageInput();
+    updateSendIcon();
+  });
+});
+
+document.querySelectorAll(".card").forEach(c => {
+  c.addEventListener("click", () => {
+    const p = c.getAttribute("data-prompt") || c.textContent;
+    el.messageInput.value = p;
+    updateSendIcon();
+    sendMessage();
+  });
+});
+
+/* Re-render on layout switch (mobile <-> desktop) */
+const mqlDesktop = window.matchMedia("(min-width: 900px)");
+mqlDesktop.addEventListener("change", () => {
+  if (isDesktopLayout()){
+    el.drawer.classList.remove("open");
+    el.drawerOverlay.classList.remove("open");
+  }
+  setScreen(el.screenSettings.classList.contains("active") ? "settings"
+    : el.screenChat.classList.contains("active") ? "chat" : "start");
+  renderDrawer();
+  renderChat();
+});
+
+/* ===== Init ===== */
+function init(){
+  el.baseUrlInput.value = state.apiBase || "";
+  el.settingsBaseUrl.value = state.apiBase || "";
+  setStartStatus("idle");
+  el.modelChipText.textContent =
+  el.ollamaModelInput.value || "model";
+
+
+  el.gigachatModelInput.value = el.gigachatModelInput.value || "GigaChat";
+
+  setProvider(state.provider);
+  setOllamaTarget(state.ollamaTarget || "chat");
+
+  ensureChat();
+  renderDrawer();
+  renderChat();
+  setComposeState("normal");
+  updateSendIcon();
+  autoResizeMessageInput();
+
+  if (state.apiBase) setScreen("chat");
+  else setScreen("start");
+
+  if (state.models && state.models.length){
+    const sel = (state.ollamaTarget === "analysis")
+      ? (el.ollamaAnalysisModelInput.value || "").trim()
+      : (el.ollamaModelInput.value || "").trim();
+    renderModels(state.models, sel);
+  }
+
+  setAttachActive(!!state.pendingFile);
+}
+init();
+</script>
+</body>
+</html>
+
+

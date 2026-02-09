@@ -1,0 +1,30 @@
+{
+  "flask_port": 5000,
+  "ngrok_auth_token": "",
+  "alice_enabled": true,
+  "alice_max_symbols": 1024,
+  "provider": "ollama",
+  "selected_model": "",
+  "openai_api_key": "TEST",
+  "openai_model": "gpt-5",
+  "gigachat_api_key": "TEST",
+  "gigachat_model": "GigaChat",
+  "ollama_analysis_model": "",
+  "cloudpub_token": "",
+  "sd_enabled": true,
+  "sd_url": "http://127.0.0.1:7860",
+  "sd_workdir": "./sd_webui",
+  "sd_start_cmd": "start.bat",
+  "sd_default_steps": 25,
+  "sd_default_width": 512,
+  "sd_default_height": 512,
+  "sd_timeout_sec": 900,
+  "admin_token": "test",
+  "debug": true,
+  "telegram": {
+    "bot_token": "",
+    "admin_ids": [
+      
+    ]
+  }
+}

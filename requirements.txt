@@ -1,0 +1,10 @@
+flask
+flask-cors
+requests
+pyngrok
+ollama
+PyPDF2
+Pillow
+pymupdf
+pyTelegramBotAPI
+telebot
